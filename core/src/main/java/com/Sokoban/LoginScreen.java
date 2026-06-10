@@ -21,7 +21,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-
+import com.Sokoban.model.MusicManager;
 /**
  *
  * @author gpopo
@@ -127,21 +127,22 @@ public class LoginScreen implements Screen {
     private void handleLogin() {
         String username = txtUsername.getText().trim();
         String password = txtPassword.getText();
-
         if (username.isEmpty() || password.isEmpty()) {
             lblMessage.setText("Completa todos los campos.");
             return;
         }
-
         if (authManager.login(username, password)) {
             Player p = AuthManager.getCurrentPlayer();
             if (p != null && !p.isActiva()) {
                 mostrarDialogoReactivar(p);
             } else {
+                if (p != null) {
+                    MusicManager.getInstance().setVolume(p.getVolume());
+                }
                 game.setScreen(new MenuScreen(game));
                 dispose();
-            }
-        } else {
+                    }
+        }else {
             lblMessage.setText(LanguageManager.get("err_pass_wrong"));
         }
     }

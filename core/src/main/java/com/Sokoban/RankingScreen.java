@@ -60,7 +60,6 @@ public class RankingScreen extends BaseScreen {
         lblTitle.setFontScale(2f);
         root.add(lblTitle).center().padBottom(24).colspan(3).row();
 
-        // Encabezados
         Label lblPos   = makeHeader("#");
         Label lblUser  = makeHeader(LanguageManager.get("username"));
         Label lblScore = makeHeader(LanguageManager.get("score"));
@@ -71,12 +70,10 @@ public class RankingScreen extends BaseScreen {
         tblHeader.add(lblScore).width(100);
         root.add(tblHeader).colspan(3).padBottom(8).row();
 
-        // Separador
         Label sep = new Label("─────────────────────────────────", skin);
         sep.setColor(MUTED);
         root.add(sep).colspan(3).padBottom(12).row();
 
-        // Lista de ranking
         Table tblRanking = new Table();
         List<String[]> top = RankingFileManager.obtenerTopGlobal(20);
 
@@ -99,7 +96,6 @@ public class RankingScreen extends BaseScreen {
                 Label lblU = new Label(username, skin);
                 Label lblS = new Label(score + " pts", skin);
 
-                // Resaltar al jugador actual
                 if (esMiPuesto) {
                     lblP.setColor(GREEN);
                     lblU.setColor(GREEN);

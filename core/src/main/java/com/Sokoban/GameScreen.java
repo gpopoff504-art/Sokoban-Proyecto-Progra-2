@@ -43,13 +43,10 @@ public class GameScreen implements Screen {
     private SpriteBatch batch;
     private Level nivelActual;
     private Jugador jugador;
+    private Juego juego; 
     private static final int TILE_SIZE = 80;
     private int offsetX;
     private int offsetY;
-
-    private int movimientos = 0;
-    private float tiempoTotal = 0;
-    private boolean gano = false;
 
     private Table panelVictoria;
     private Label lblTiempo;
@@ -82,6 +79,7 @@ public class GameScreen implements Screen {
         offsetX = (Gdx.graphics.getWidth() - nivelActual.getColumnas() * TILE_SIZE) / 2;
         offsetY = (Gdx.graphics.getHeight() - nivelActual.getFilas() * TILE_SIZE) / 2;
         jugador = new Jugador(nivelActual.getJugadorX(), nivelActual.getJugadorY());
+        juego = new Sokoban(nivelActual, jugador);
 
         // HUD arriba
         Table hud = new Table();
@@ -101,7 +99,6 @@ public class GameScreen implements Screen {
         lblMovimientos.setColor(new Color(0.976f, 0.886f, 0.686f, 1f));
         hud.add(lblMovimientos).expandX().right().padRight(20);
 
-        // Botones abajo
         Table rootBottom = new Table();
         rootBottom.setFillParent(true);
         rootBottom.bottom().pad(10);
@@ -114,7 +111,7 @@ public class GameScreen implements Screen {
             public void changed(ChangeEvent event, Actor actor) {
                 Player player = AuthManager.getCurrentPlayer();
                 if (player != null) {
-                    player.setTotalTimePlayed(player.getTotalTimePlayed() + (long) tiempoTotal);
+                    player.setTotalTimePlayed(player.getTotalTimePlayed() + (long) juego.getTiempoTotal());
                     FileManager.savePlayer(player);
                 }
                 game.setScreen(new MapScreen(game));
@@ -129,7 +126,7 @@ public class GameScreen implements Screen {
             public void changed(ChangeEvent event, Actor actor) {
                 Player player = AuthManager.getCurrentPlayer();
                 if (player != null) {
-                    player.setTotalTimePlayed(player.getTotalTimePlayed() + (long) tiempoTotal);
+                    player.setTotalTimePlayed(player.getTotalTimePlayed() + (long) juego.getTiempoTotal());
                     FileManager.savePlayer(player);
                 }
                 game.setScreen(new GameScreen(game, level));
@@ -137,7 +134,6 @@ public class GameScreen implements Screen {
             }
         });
 
-        // Panel victoria
         Table overlay = new Table();
         overlay.setFillParent(true);
         overlay.setVisible(false);
@@ -183,81 +179,31 @@ public class GameScreen implements Screen {
     }
 
     private void handleInput() {
-        if (gano) return;
-        int dx = 0, dy = 0;
+        if (juego.isGano()) return;
         String dir = null;
 
         if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.LEFT) ||
                 Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.A)) {
-            dx = -1; dir = "left";
+            dir = "left";
         } else if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.RIGHT) ||
                 Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.D)) {
-            dx = 1; dir = "right";
+            dir = "right";
         } else if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.UP) ||
                 Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.W)) {
-            dy = -1; dir = "up";
+            dir = "up";
         } else if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.DOWN) ||
                 Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.S)) {
-            dy = 1; dir = "down";
+            dir = "down";
         }
 
         if (dir != null) {
-            moverJugador(dx, dy, dir);
+            juego.mover(dir);
         }
-    }
-
-    private void moverJugador(int dx, int dy, String dir) {
-        int[][] mapa = nivelActual.getMapa();
-        int px = jugador.getGridX();
-        int py = jugador.getGridY();
-        int nx = px + dx;
-        int ny = py + dy;
-
-        if (nx < 0 || ny < 0 || ny >= nivelActual.getFilas() || nx >= nivelActual.getColumnas()) return;
-
-        int celda = mapa[ny][nx];
-
-        if (celda == Level.MURO || celda == Level.VACIO) {
-            jugador.setIdle();
-            return;
-        }
-
-        if (celda == Level.CAJA) {
-            int cx = nx + dx;
-            int cy = ny + dy;
-            if (cx < 0 || cy < 0 || cy >= nivelActual.getFilas() || cx >= nivelActual.getColumnas()) return;
-            int detras = mapa[cy][cx];
-            if (detras == Level.MURO || detras == Level.CAJA || detras == Level.VACIO) {
-                jugador.setIdle();
-                return;
-            }
-            mapa[cy][cx] = Level.CAJA;
-            mapa[ny][nx] = (nivelActual.getMapaObjetivos()[ny][nx] == Level.OBJETIVO) ? Level.OBJETIVO : Level.PISO;
-            jugador.setMoviendo(dir, true);
-        } else {
-            jugador.setMoviendo(dir, false);
-        }
-
-        jugador.setGridX(nx);
-        jugador.setGridY(ny);
-        movimientos++;
-    }
-
-    private boolean verificarVictoria() {
-        int[][] mapa = nivelActual.getMapa();
-        int[][] mapaOriginal = nivelActual.getMapaObjetivos();
-        for (int f = 0; f < nivelActual.getFilas(); f++) {
-            for (int c = 0; c < nivelActual.getColumnas(); c++) {
-                if (mapaOriginal[f][c] == Level.OBJETIVO && mapa[f][c] != Level.CAJA) {
-                    return false;
-                }
-            }
-        }
-        return true;
     }
 
     private void procesarVictoria() {
-        gano = true;
+        float tiempoTotal = juego.getTiempoTotal();
+        int movimientos = juego.getMovimientos();
 
         int seg = (int) tiempoTotal;
         int centesimas = (int) ((tiempoTotal - seg) * 100);
@@ -267,19 +213,15 @@ public class GameScreen implements Screen {
 
         Player player = AuthManager.getCurrentPlayer();
         if (player != null) {
-            // Calcular puntaje: base 1000, -10 por movimiento, -5 por segundo, minimo 100
-            int puntaje = Math.max(100, 1000 - (movimientos * 10) - ((int) tiempoTotal * 5));
+            int puntaje = juego.calcularPuntaje();
             boolean nuevoPuntaje = player.actualizarPuntajeNivel(level, puntaje);
 
-            // Guardar en ranking global
             RankingFileManager.guardarOActualizar(player.getUsername(), puntaje, level);
 
-            // Mostrar puntaje en panel
             String estrellaMsg = nuevoPuntaje ? " ★ " + LanguageManager.get("new_record") : "";
             lblPuntajeVictoria.setText(puntaje + " pts" + estrellaMsg);
             if (nuevoPuntaje) lblPuntajeVictoria.setColor(new Color(0.651f, 0.890f, 0.631f, 1f));
 
-            // Actualizar progreso
             if (level >= player.getCurrentLevel() && level < 5) {
                 player.setCurrentLevel(level + 1);
             }
@@ -298,23 +240,23 @@ public class GameScreen implements Screen {
         Gdx.gl.glClearColor(0.118f, 0.118f, 0.180f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        if (!gano && movimientos > 0) {
-            tiempoTotal += delta;
+        if (!juego.isGano() && juego.getMovimientos() > 0) {
+            float tiempoTotal = juego.getTiempoTotal();
             int seg = (int) tiempoTotal;
             int centesimas = (int) ((tiempoTotal - seg) * 100);
             lblTiempo.setText(LanguageManager.get("time") + " : " + seg + "." + String.format("%02d", centesimas) + "s");
-            lblMovimientos.setText(LanguageManager.get("movements") + ": " + movimientos);
+            lblMovimientos.setText(LanguageManager.get("movements") + ": " + juego.getMovimientos());
         }
 
         handleInput();
-        jugador.update(delta);
+        juego.update(delta);
 
         batch.begin();
         nivelActual.render(batch, TILE_SIZE, offsetX, offsetY);
         jugador.render(batch, TILE_SIZE, offsetX, offsetY, nivelActual.getFilas());
         batch.end();
 
-        if (!gano && verificarVictoria()) {
+        if (!juego.isGano() && juego.verificarVictoria()) {
             procesarVictoria();
         }
 
@@ -333,6 +275,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void dispose() {
+        juego.detener();
         stage.dispose();
         skin.dispose();
         batch.dispose();

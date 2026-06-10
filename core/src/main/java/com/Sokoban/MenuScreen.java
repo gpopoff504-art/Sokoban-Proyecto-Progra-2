@@ -19,7 +19,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.Sokoban.model.AuthManager;
 import com.Sokoban.model.LanguageManager;
 import com.Sokoban.model.Player;
-
+import com.Sokoban.model.MusicManager;
 /**
  *
  * @author gpopo
@@ -141,6 +141,7 @@ public class MenuScreen extends BaseScreen {
         btnLogout.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
+                MusicManager.getInstance().setVolume(1f);
                 Screen oldScreen = game.getScreen();
                 game.setScreen(new LoginScreen(game));
                 if (oldScreen != null) oldScreen.dispose();

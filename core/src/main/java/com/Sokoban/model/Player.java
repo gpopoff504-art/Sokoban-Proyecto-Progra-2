@@ -123,12 +123,18 @@ public class Player implements Serializable {
     }
     
     public int getMejorPuntajeNivel(int nivel) {
-        if(nivel < 1 || nivel >5 ) return 0;
+        if (nivel < 1 || nivel > 5) return 0;
+        if (mejoresPuntajesPorNivel == null) {
+            mejoresPuntajesPorNivel = new int[6];
+        }
         return mejoresPuntajesPorNivel[nivel];
     }
     
     public boolean actualizarPuntajeNivel(int nivel, int nuevoPuntaje) {
         if (nivel < 1 || nivel > 5) return false;
+        if (mejoresPuntajesPorNivel == null) {
+            mejoresPuntajesPorNivel = new int[6];
+        }
         int anterior = mejoresPuntajesPorNivel[nivel];
         if (nuevoPuntaje > anterior) {
             int diferencia = nuevoPuntaje - anterior;

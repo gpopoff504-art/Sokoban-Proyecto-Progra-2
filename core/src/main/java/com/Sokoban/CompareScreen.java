@@ -15,6 +15,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -39,7 +40,6 @@ public class CompareScreen extends BaseScreen {
     private final String friendUsername;
     private Stage stage;
     private Skin skin;
-    private SpriteBatch batchAvatars;
     private Texture texMe;
     private Texture texFriend;
 
@@ -54,7 +54,6 @@ public class CompareScreen extends BaseScreen {
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
         skin = new Skin(Gdx.files.internal("uiskin.json"));
-        batchAvatars = new SpriteBatch();
 
         Player me     = AuthManager.getCurrentPlayer();
         Player friend = FileManager.loadPlayer(friendUsername);
@@ -64,19 +63,22 @@ public class CompareScreen extends BaseScreen {
 
         Table root = new Table();
         root.setFillParent(true);
-        root.top().pad(24);
+        root.center().top().pad(24);
         root.setBackground(skin.newDrawable("white", BG));
         stage.addActor(root);
+
+        Table content = new Table();
+        root.add(content).center();
 
         Label lblTitle = new Label(LanguageManager.get("compare_stats"), skin);
         lblTitle.setColor(CYAN);
         lblTitle.setFontScale(1.8f);
-        root.add(lblTitle).colspan(3).center().padBottom(20).row();
+        content.add(lblTitle).colspan(3).center().padBottom(20).row();
 
         if (me == null || friend == null) {
             Label err = new Label(LanguageManager.get("user_not_found"), skin);
             err.setColor(RED);
-            root.add(err).colspan(3).center().row();
+            content.add(err).colspan(3).center().row();
         } else {
             Label lblMe     = new Label(me.getUsername(), skin);
             Label lblVs     = new Label("VS", skin);
@@ -87,40 +89,52 @@ public class CompareScreen extends BaseScreen {
             lblFriend.setColor(MUTED);
             lblFriend.setFontScale(1.2f);
 
-            root.add(lblMe).center().width(200);
-            root.add(lblVs).center().width(60);
-            root.add(lblFriend).center().width(200).row();
-            root.add().height(84).width(200);
-            root.add().width(60);
-            root.add().height(84).width(200).row();
+            content.add(lblMe).center().width(140);
+            content.add(lblVs).center().width(180);
+            content.add(lblFriend).center().width(140).row();
 
-            addSep(root);
+            Image imgMe     = new Image(texMe);
+            Image imgFriend = new Image(texFriend);
+            imgMe.setScaling(com.badlogic.gdx.utils.Scaling.fit);
+            imgFriend.setScaling(com.badlogic.gdx.utils.Scaling.fit);
 
-            addStat(root, LanguageManager.get("level"),
+            Table cellMe = new Table();
+            cellMe.add(imgMe).size(72, 72);
+
+            Table cellFriend = new Table();
+            cellFriend.add(imgFriend).size(72, 72);
+
+            content.add(cellMe).width(140).center().padBottom(8);
+            content.add().width(180);
+            content.add(cellFriend).width(140).center().padBottom(8).row();
+
+            addSep(content);
+
+            addStat(content, LanguageManager.get("level"),
                 me.getCurrentLevel(), friend.getCurrentLevel(), false, false);
-            addStat(root, LanguageManager.get("score"),
+            addStat(content, LanguageManager.get("score"),
                 me.getTotalScore(), friend.getTotalScore(), false, true);
-            addStat(root, LanguageManager.get("completed_levels"),
+            addStat(content, LanguageManager.get("completed_levels"),
                 me.getNivelesCompletados(), friend.getNivelesCompletados(), false, false);
-            addStat(root, LanguageManager.get("average_time_per_level"),
+            addStat(content, LanguageManager.get("average_time_per_level"),
                 (int) me.getTiempoPromedioPorNivel(), (int) friend.getTiempoPromedioPorNivel(), true, false);
 
-            addSep(root);
+            addSep(content);
 
             Label lblBest = new Label(LanguageManager.get("best_per_level"), skin);
             lblBest.setColor(GOLD);
-            root.add(lblBest).colspan(3).center().padTop(6).padBottom(6).row();
+            content.add(lblBest).colspan(3).center().padTop(6).padBottom(6).row();
 
             for (int i = 1; i <= 5; i++) {
-                addStat(root, LanguageManager.get("level") + " " + i,
+                addStat(content, LanguageManager.get("level") + " " + i,
                     me.getMejorPuntajeNivel(i), friend.getMejorPuntajeNivel(i), false, true);
             }
         }
 
-        addSep(root);
+        addSep(content);
 
         TextButton btnBack = new TextButton(LanguageManager.get("back"), skin);
-        root.add(btnBack).colspan(3).width(280).height(48).padTop(12).row();
+        content.add(btnBack).colspan(3).width(280).height(48).padTop(12).row();
         btnBack.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -146,13 +160,16 @@ public class CompareScreen extends BaseScreen {
         Label lName = new Label(nombre, skin);
         Label lFr   = new Label(valFriend + sfx, skin);
 
+        lName.setWrap(true);
+        lName.setAlignment(com.badlogic.gdx.utils.Align.center);
+
         lMe.setColor(meWins ? GREEN : (friendWins ? RED : Color.WHITE));
         lName.setColor(MUTED);
         lFr.setColor(friendWins ? GREEN : (meWins ? RED : Color.WHITE));
 
-        root.add(lMe).center().width(200).padBottom(8);
-        root.add(lName).center().width(60).padBottom(8);
-        root.add(lFr).center().width(200).padBottom(8).row();
+        root.add(lMe).center().width(140).padBottom(8);
+        root.add(lName).center().width(180).maxWidth(180).padBottom(8);
+        root.add(lFr).center().width(140).padBottom(8).row();
     }
 
     private Texture loadAvatar(Player p) {
@@ -170,15 +187,6 @@ public class CompareScreen extends BaseScreen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         stage.act(delta);
         stage.draw();
-
-        int w = Gdx.graphics.getWidth();
-        int h = Gdx.graphics.getHeight();
-        batchAvatars.begin();
-        batchAvatars.draw(texMe,     w / 2 - 220, h - 222, 72, 72);
-        batchAvatars.draw(texFriend, w / 2 + 148, h - 222, 72, 72);
-        batchAvatars.end();
-
-        dibujarHUD();
     }
 
     @Override
@@ -195,7 +203,6 @@ public class CompareScreen extends BaseScreen {
         disposeBase();
         if (stage != null) stage.dispose();
         if (skin != null) skin.dispose();
-        if (batchAvatars != null) batchAvatars.dispose();
         if (texMe != null) texMe.dispose();
         if (texFriend != null) texFriend.dispose();
     }
