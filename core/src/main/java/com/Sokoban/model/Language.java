@@ -11,22 +11,20 @@ package com.Sokoban.model;
 public enum Language {
     SPANISH("es", "Español"),
     ENGLISH("en", "English");
-    
+
     private final String code;
     private final String displayName;
-    
+
     Language(String code, String displayName) {
         this.code = code;
         this.displayName = displayName;
     }
-    
+
     public String getCode() {
         return code;
     }
-    
-    @Override
+
     public String getDisplayName() {
         return displayName;
     }
-    
 }

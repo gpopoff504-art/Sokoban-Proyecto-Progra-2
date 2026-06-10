@@ -1,40 +1,62 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.Sokoban.model;
 
-import java.io.IOException;
+import com.Sokoban.filehandling.FileManager;
 
-/**
- *
- * @author gpopo
- */
 public class AuthManager implements Authenticable {
+
+    private static Player currentPlayer = null;
 
     @Override
     public boolean register(String username, String password, String fullName) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        if (username == null || username.trim().isEmpty()) return false;
+        if (!validatePassword(password)) return false;
+        if (FileManager.playerExists(username)) return false;
+
+        Player newPlayer = new Player(username, password, fullName);
+        return FileManager.savePlayer(newPlayer);
     }
 
     @Override
     public boolean login(String username, String password) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        if (!FileManager.playerExists(username)) return false;
+
+        Player player = FileManager.loadPlayer(username);
+        if (player == null) return false;
+
+        if (player.getPassword().equals(password)) {
+            currentPlayer = player;
+            return true;
+        }
+        return false;
     }
 
     @Override
     public boolean logout(String username) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        if (currentPlayer != null && currentPlayer.getUsername().equals(username)) {
+            FileManager.savePlayer(currentPlayer); 
+            currentPlayer = null;
+            return true;
+        }
+        return false;
     }
 
     @Override
     public boolean changePassword(String username, String oldPassword, String newPassword) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        Player player = FileManager.loadPlayer(username);
+        if (player == null) return false;
+        if (!player.getPassword().equals(oldPassword)) return false;
+        if (!validatePassword(newPassword)) return false;
+
+        player.setPassword(newPassword);
+        return FileManager.savePlayer(player);
     }
 
     @Override
     public boolean validatePassword(String password) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        return password != null && password.length() >= 6;
     }
-    
+
+    public static Player getCurrentPlayer() {
+        return currentPlayer;
+    }
 }
