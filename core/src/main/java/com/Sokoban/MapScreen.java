@@ -25,7 +25,7 @@ import com.Sokoban.model.Player;
  */
 public class MapScreen implements Screen {
 
-    private static final int TOTAL_LEVELS = 9;
+    private static final int TOTAL_LEVELS = 5;
 
     private final Main game;
     private Stage stage;
