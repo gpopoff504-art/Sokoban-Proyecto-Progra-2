@@ -26,6 +26,10 @@ public class Jugador{
     private float animTimer = 0;
     private int animFrame = 0;
     private static final float FRAME_TIME = 0.2f;
+    private String dirActual = null;
+    private boolean empujandoActual = false;
+    private float idleTimer = 0;
+    private static final float IDLE_DELAY = 0.3f;
 
     public Jugador(int gridX, int gridY){
         this.gridX = gridX;
@@ -55,31 +59,19 @@ public class Jugador{
     }
 
     public void setIdle(){
+        dirActual = null;
+        empujandoActual = false;
         texActual = idle;
         animFrame = 0;
         animTimer = 0;
     }
 
     public void setMoviendo(String direccion, boolean empujando){
-        animTimer += Gdx.graphics.getDeltaTime();
-        if(animTimer >= FRAME_TIME){
-            animTimer = 0;
-            animFrame = (animFrame + 1) % 2;
-        }
-        switch(direccion){
-            case "left": texActual = empujando ? (animFrame == 0 ? leftPush1 : leftPush2) : (animFrame == 0 ? left1 : left2);
-            break;
-            
-            case "right": texActual = empujando ? (animFrame == 0 ? rightPush1 : rightPush2) : (animFrame == 0 ? right1 : right2); 
-            break;
-            
-            case "up": texActual = empujando ? (animFrame == 0 ? upPush1 : upPush2) : (animFrame == 0 ? up1 : up2);
-            break;
-            
-            case "down": texActual = empujando ? (animFrame == 0 ? downPush1 : downPush2) : (animFrame == 0 ? down1 : down2); 
-            break;
-            
-        }
+        this.dirActual = direccion;
+        this.empujandoActual = empujando;
+        this.idleTimer = 0;
+        this.animFrame = 0;
+        actualizarTextura();      
     }
 
     public void render(SpriteBatch batch, int tileSize, int offsetX, int offsetY, int filas){
@@ -109,5 +101,30 @@ public class Jugador{
         right1.dispose(); right2.dispose(); rightPush1.dispose(); rightPush2.dispose();
         up1.dispose(); up2.dispose(); upPush1.dispose(); upPush2.dispose();
         down1.dispose(); down2.dispose(); downPush1.dispose(); downPush2.dispose();
+    }
+    
+    public void update(float delta) {
+        if (dirActual != null) {
+            idleTimer += delta;
+            animTimer += delta;
+            if(animTimer >= FRAME_TIME){
+                animTimer = 0;
+                animFrame = (animFrame + 1) % 2;
+                actualizarTextura();
+            }
+            if(idleTimer >= IDLE_DELAY) {
+                setIdle();
+            }
+        }
+    }
+    
+    private void actualizarTextura() {
+        if(dirActual == null) return;
+        switch (dirActual) {
+            case "left": texActual = empujandoActual ? (animFrame == 0 ? leftPush1 : leftPush2) : (animFrame == 0 ? left1 : left2); break;
+            case "right": texActual = empujandoActual ? (animFrame == 0 ? rightPush1 : rightPush2) : (animFrame == 0 ? right1 : right2); break;
+            case "up":    texActual = empujandoActual ? (animFrame == 0 ? upPush1    : upPush2)    : (animFrame == 0 ? up1    : up2);    break;
+            case "down":  texActual = empujandoActual ? (animFrame == 0 ? downPush1  : downPush2)  : (animFrame == 0 ? down1  : down2);  break;        
+        }
     }
 }
