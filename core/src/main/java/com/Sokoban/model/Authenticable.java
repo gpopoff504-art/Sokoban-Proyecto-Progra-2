@@ -9,7 +9,7 @@ package com.Sokoban.model;
  * @author gpopo
  */
 public interface Authenticable {
-    boolean register(String username, String password, String fullName);
+    boolean register(String username, String password, String fullName, String avatar);
     boolean login(String username, String password);
     boolean logout(String username);
     boolean changePassword(String username, String oldPassword, String newPassword);

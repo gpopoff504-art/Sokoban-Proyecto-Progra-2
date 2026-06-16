@@ -18,9 +18,15 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.Sokoban.model.Jugador;
-import com.Sokoban.model.Level1;
 import com.Sokoban.model.Level;
-
+import com.Sokoban.model.Level1;
+import com.Sokoban.model.Level2;
+import com.Sokoban.model.Level3;
+import com.Sokoban.model.Level4;
+import com.Sokoban.model.Level5;
+import com.Sokoban.model.AuthManager;
+import com.Sokoban.model.Player;
+import com.Sokoban.filehandling.FileManager;
 /**
  *
  * @author gpopo
@@ -32,11 +38,21 @@ public class GameScreen implements Screen{
     private Stage stage;
     private Skin skin;
     private SpriteBatch batch;
-    private Level1 nivel1;
+    private Level nivelActual;
     private Jugador jugador;
     private static final int TILE_SIZE = 80;
     private int offsetX;
     private int offsetY;
+
+    private int movimientos = 0;
+    private float tiempoTotal = 0;
+    private boolean gano = false;
+
+    private Table panelVictoria;
+    private Label lblTiempo;
+    private Label lblMovimientos;
+    private Label lblTiempoVictoria;
+    private Label lblMovsVictoria;
 
     public GameScreen(Main game, int level){
         this.game = game;
@@ -49,108 +65,211 @@ public class GameScreen implements Screen{
         Gdx.input.setInputProcessor(stage);
         skin = new Skin(Gdx.files.internal("uiskin.json"));
         batch = new SpriteBatch();
-        nivel1 = new Level1();
-        offsetX = (Gdx.graphics.getWidth() - nivel1.getColumnas() * TILE_SIZE) / 2;
-        offsetY = (Gdx.graphics.getHeight() - nivel1.getFilas() * TILE_SIZE) / 2;
-        jugador = new Jugador(nivel1.getJugadorX(), nivel1.getJugadorY());
+        
+        switch(level){
+            case 1: nivelActual = new Level1(); break;
+            case 2: nivelActual = new Level2(); break;
+            case 3: nivelActual = new Level3(); break;
+            case 4: nivelActual = new Level4(); break;
+            case 5: nivelActual = new Level5(); break;
+            default: nivelActual = new Level1(); break;
+        }
+        offsetX = (Gdx.graphics.getWidth() - nivelActual.getColumnas() * TILE_SIZE) / 2;
+        offsetY = (Gdx.graphics.getHeight() - nivelActual.getFilas() * TILE_SIZE) / 2;
+        jugador = new Jugador(nivelActual.getJugadorX(), nivelActual.getJugadorY());
 
-        Table root = new Table();
-        root.setFillParent(true);
-        stage.addActor(root);
+        // HUD arriba con timer
+        Table hud = new Table();
+        hud.setFillParent(true);
+        hud.top().pad(10);
+        stage.addActor(hud);
+
+        lblTiempo = new Label("Tiempo: 0s", skin);
+        lblTiempo.setColor(new Color(0.976f, 0.886f, 0.686f, 1f));
+        hud.add(lblTiempo).expandX().left().padLeft(20);
+
+        Label lblNivel = new Label("Nivel: " + level, skin);
+        lblNivel.setColor(Color.WHITE);
+        hud.add(lblNivel).expandX().center();
+
+        lblMovimientos = new Label("Movimientos: 0", skin);
+        lblMovimientos.setColor(new Color(0.976f, 0.886f, 0.686f, 1f));
+        hud.add(lblMovimientos).expandX().right().padRight(20);
+
+        // Boton volver
+        Table rootBottom = new Table();
+        rootBottom.setFillParent(true);
+        rootBottom.bottom().pad(10);
+        stage.addActor(rootBottom);
 
         TextButton btnBack = new TextButton("Volver al Mapa", skin);
-        root.bottom().pad(10);
-        root.add(btnBack).width(240).height(48);
-
+        rootBottom.add(btnBack).width(240).height(48);
         btnBack.addListener(new ChangeListener(){
             @Override
             public void changed(ChangeEvent event, Actor actor){
+                Player player = AuthManager.getCurrentPlayer();
+                if(player != null){
+                    player.setTotalTimePlayed(player.getTotalTimePlayed() + (long)tiempoTotal);
+                    FileManager.savePlayer(player);
+                }
                 game.setScreen(new MapScreen(game));
                 dispose();
             }
         });
+
+        // Panel victoria
+        Table overlay = new Table();
+        overlay.setFillParent(true);
+        overlay.setVisible(false);
+        overlay.setBackground(skin.newDrawable("white", new Color(0f, 0f, 0f, 0.7f)));
+        stage.addActor(overlay);
+        panelVictoria = overlay;
+
+        Label lblGano = new Label("¡Ganaste!", skin);
+        lblGano.setColor(new Color(0.537f, 0.863f, 0.922f, 1f));
+        lblGano.setFontScale(2f);
+
+        lblTiempoVictoria = new Label("Tiempo: 0s", skin);
+        lblTiempoVictoria.setColor(Color.WHITE);
+
+        lblMovsVictoria = new Label("Movimientos: 0", skin);
+        lblMovsVictoria.setColor(Color.WHITE);
+
+        TextButton btnSiguiente = new TextButton(level == 5 ? "Volver al Menu" : "Siguiente Nivel", skin);
+
+        overlay.center();
+        overlay.add(lblGano).padBottom(16).row();
+        overlay.add(lblTiempoVictoria).padBottom(8).row();
+        overlay.add(lblMovsVictoria).padBottom(24).row();
+        overlay.add(btnSiguiente).width(240).height(48).row();
+
+        btnSiguiente.addListener(new ChangeListener(){
+            @Override
+            public void changed(ChangeEvent event, Actor actor){
+                if(level == 5){
+                    game.setScreen(new MenuScreen(game));
+                }else{
+                    game.setScreen(new GameScreen(game, level + 1));
+                }
+                dispose();
+            }
+        });
     }
-    
-    private void handleInput() {
+
+    private void handleInput(){
+        if(gano) return;
         int dx = 0, dy = 0;
         String dir = null;
-        
-        if(Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.LEFT) || 
-                Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.A)) {
+
+        if(Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.LEFT) ||
+                Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.A)){
             dx = -1; dir = "left";
-        }
-        else if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.RIGHT) || 
-                Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.D)) {
+        }else if(Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.RIGHT) ||
+                Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.D)){
             dx = 1; dir = "right";
-        }
-        else if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.UP) || 
-                Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.W)) {
+        }else if(Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.UP) ||
+                Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.W)){
             dy = -1; dir = "up";
-        }
-        else if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.DOWN) || 
+        }else if(Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.DOWN) ||
                 Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.S)){
             dy = 1; dir = "down";
         }
-        
-        if (dir != null) {
+
+        if(dir != null){
             moverJugador(dx, dy, dir);
         }
     }
-    
+
     private void moverJugador(int dx, int dy, String dir){
-        int [][] mapa = nivel1.getMapa();
+        int[][] mapa = nivelActual.getMapa();
         int px = jugador.getGridX();
         int py = jugador.getGridY();
-        
         int nx = px + dx;
         int ny = py + dy;
-        
-        if (nx < 0 || ny < 0 || ny >= nivel1.getFilas() || nx >= nivel1.getColumnas()) return;
-        
+
+        if(nx < 0 || ny < 0 || ny >= nivelActual.getFilas() || nx >= nivelActual.getColumnas()) return;
+
         int celda = mapa[ny][nx];
-        
-        if (celda == Level.MURO || celda == Level.VACIO) {
+
+        if(celda == Level.MURO || celda == Level.VACIO){
             jugador.setIdle();
             return;
         }
-        
-        if(celda == Level.CAJA) {
+
+        if(celda == Level.CAJA){
             int cx = nx + dx;
             int cy = ny + dy;
-            
-            if(cx < 0 || cy < 0 || cy >= nivel1.getFilas() || cx >= nivel1.getColumnas()) return;
-            
-            int detras = mapa [cy][cx];
-            if(detras == Level.MURO || detras == Level.CAJA || detras == Level.VACIO) {
+            if(cx < 0 || cy < 0 || cy >= nivelActual.getFilas() || cx >= nivelActual.getColumnas()) return;
+            int detras = mapa[cy][cx];
+            if(detras == Level.MURO || detras == Level.CAJA || detras == Level.VACIO){
                 jugador.setIdle();
                 return;
             }
-            
             mapa[cy][cx] = Level.CAJA;
-            mapa[ny][nx] = Level.PISO;
+            mapa[ny][nx] = (nivelActual.getMapaObjetivos()[ny][nx] == Level.OBJETIVO) ? Level.OBJETIVO : Level.PISO;
             jugador.setMoviendo(dir, true);
-        }else {
+        }else{
             jugador.setMoviendo(dir, false);
         }
+
         jugador.setGridX(nx);
         jugador.setGridY(ny);
+        movimientos++;
     }
 
-    @Override
+    private boolean verificarVictoria(){
+        int[][] mapa = nivelActual.getMapa();
+        int[][] mapaOriginal = nivelActual.getMapaObjetivos();
+        for(int f = 0; f < nivelActual.getFilas(); f++){
+            for(int c = 0; c < nivelActual.getColumnas(); c++){
+                if(mapaOriginal[f][c] == Level.OBJETIVO && mapa[f][c] != Level.CAJA){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    @Override   
     public void render(float delta){
         Gdx.gl.glClearColor(0.118f, 0.118f, 0.180f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        
+
+        if(!gano && movimientos > 0){
+            tiempoTotal += delta;
+            int seg = (int) tiempoTotal;
+            int centesimas = (int)((tiempoTotal - seg) * 100);
+            lblTiempo.setText("Tiempo: " + seg + "." + String.format("%02d", centesimas) + "s");
+            lblMovimientos.setText("Movimientos: " + movimientos);
+        }
         handleInput();
         jugador.update(delta);
+
         batch.begin();
-        nivel1.render(batch, TILE_SIZE, offsetX, offsetY);
-        jugador.render(batch, TILE_SIZE, offsetX, offsetY, nivel1.getFilas());
+        nivelActual.render(batch, TILE_SIZE, offsetX, offsetY);
+        jugador.render(batch, TILE_SIZE, offsetX, offsetY, nivelActual.getFilas());
         batch.end();
-        
+
+        if(!gano && verificarVictoria()){
+            gano = true;
+            int seg = (int) tiempoTotal;
+            int centesimas = (int)((tiempoTotal - seg) * 100);
+            lblTiempoVictoria.setText("Tiempo: " + seg + "." + String.format("%02d", centesimas) + "s");
+            lblMovsVictoria.setText("Movimientos: " + movimientos);
+            panelVictoria.setVisible(true);
+            Player player = AuthManager.getCurrentPlayer();
+            if(player != null){
+                if(level >= player.getCurrentLevel() && level < 5){
+                    player.setCurrentLevel(level + 1);
+                }
+                player.setTotalTimePlayed(player.getTotalTimePlayed() + (long)tiempoTotal);
+                player.addGameHistory("Nivel " + level + " - Tiempo: " + (int)tiempoTotal + "s - Movimientos: " + movimientos);
+                FileManager.savePlayer(player);
+            }
+        }
+
         stage.act(delta);
         stage.draw();
-
     }
 
     @Override
@@ -167,9 +286,7 @@ public class GameScreen implements Screen{
         stage.dispose();
         skin.dispose();
         batch.dispose();
-        nivel1.dispose();
+        nivelActual.dispose();
         jugador.dispose();
     }
-    
-
 }

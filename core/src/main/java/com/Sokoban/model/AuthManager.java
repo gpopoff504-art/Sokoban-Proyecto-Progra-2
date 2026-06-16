@@ -7,12 +7,12 @@ public class AuthManager implements Authenticable {
     private static Player currentPlayer = null;
 
     @Override
-    public boolean register(String username, String password, String fullName) {
+    public boolean register(String username, String password, String fullName, String avatar){
         if (username == null || username.trim().isEmpty()) return false;
         if (!validatePassword(password)) return false;
         if (FileManager.playerExists(username)) return false;
-
         Player newPlayer = new Player(username, password, fullName);
+        newPlayer.setAvatarPath(avatar);
         return FileManager.savePlayer(newPlayer);
     }
 
@@ -25,6 +25,12 @@ public class AuthManager implements Authenticable {
 
         if (player.getPassword().equals(password)) {
             currentPlayer = player;
+            currentPlayer.setLastSession(java.time.LocalDateTime.now());
+            FileManager.savePlayer(currentPlayer);
+            if(currentPlayer.getCurrentLevel() > 5){
+                currentPlayer.setCurrentLevel(5);
+                FileManager.savePlayer(currentPlayer);
+            }
             return true;
         }
         return false;

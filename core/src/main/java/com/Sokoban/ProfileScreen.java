@@ -18,29 +18,39 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.Sokoban.model.AuthManager;
 import com.Sokoban.model.Player;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.Sokoban.filehandling.FileManager;
 
 /**
  *
  * @author gpopo
  */
-public class ProfileScreen implements Screen {
+public class ProfileScreen extends BaseScreen {
 
     private final Main game;
     private Stage stage;
     private Skin skin;
-
+    private SpriteBatch batch;
+    private Texture texAvatar;
+    
     public ProfileScreen(Main game) {
         this.game = game;
     }
 
     @Override
     public void show() {
+        iniciarBase();
+        Player player = AuthManager.getCurrentPlayer();
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
 
         skin = new Skin(Gdx.files.internal("uiskin.json"));
-
-        Player player = AuthManager.getCurrentPlayer();
+        batch = new SpriteBatch();
+        String rutaAvatar = (player != null && !player.getAvatarPath().equals("default")) 
+            ? "avatars/" + player.getAvatarPath() + ".png" 
+            : "avatars/aP.png";
+        texAvatar = new Texture(Gdx.files.internal(rutaAvatar));
 
         Table root = new Table();
         root.setFillParent(true);
@@ -50,8 +60,7 @@ public class ProfileScreen implements Screen {
         Label lblTitle = new Label("MI PERFIL", skin);
         lblTitle.setColor(new Color(0.537f, 0.863f, 0.922f, 1f));
         lblTitle.setFontScale(1.8f);
-
-        root.pad(40);
+        root.center().pad(40);   
         root.add(lblTitle).center().padBottom(28).row();
 
         if (player != null) {
@@ -60,11 +69,36 @@ public class ProfileScreen implements Screen {
             addRow(root, skin, "Nivel actual",  String.valueOf(player.getCurrentLevel()));
             addRow(root, skin, "Puntuacion",    String.valueOf(player.getTotalScore()));
             addRow(root, skin, "Registrado",    player.getRegistrationDate().toLocalDate().toString());
+            addRow(root, skin, "Ultima sesion", player.getLastSession().toLocalDate().toString());
+            long tiempo = player.getTotalTimePlayed();
+            long horas = tiempo / 3600;
+            long minutos = (tiempo % 3600) / 60;
+            long segundos = tiempo % 60;
+            String tiempoFormato;
+            if(horas > 0){
+                tiempoFormato = horas + "h " + minutos + "m " + segundos + "s";
+            }else if(minutos > 0){
+                tiempoFormato = minutos + "m " + segundos + "s";
+            }else{
+                tiempoFormato = segundos + "s";
+            }
+            addRow(root, skin, "Tiempo total jugado", tiempoFormato);
+            addRow(root, skin, "Partidas jugadas", String.valueOf(player.getGameHistory().size()));
+
+            TextButton btnAvatar = new TextButton("Cambiar Avatar", skin);
+            root.add(btnAvatar).colspan(2).center().width(280).height(48).padTop(16).row();
+
+            btnAvatar.addListener(new ChangeListener(){
+                @Override
+                public void changed(ChangeEvent event, Actor actor){
+                    game.setScreen(new AvatarScreen(game, false));
+                    dispose();
+                }
+            });
         }
 
         TextButton btnBack = new TextButton("Volver al Menu", skin);
-        root.add(btnBack).width(280).height(48).padTop(28).row();
-
+        root.add(btnBack).colspan(2).center().width(280).height(48).padTop(28).row();
         btnBack.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -74,23 +108,22 @@ public class ProfileScreen implements Screen {
         });
     }
 
-    private void addRow(Table table, Skin skin, String key, String value) {
+    private void addRow(Table table, Skin skin, String key, String value){
         Label lKey = new Label(key + ":", skin);
         lKey.setColor(new Color(0.804f, 0.831f, 0.957f, 1f));
-
         Label lVal = new Label(value, skin);
         lVal.setColor(Color.WHITE);
-
-        table.add(lKey).left().padRight(16).padBottom(12);
+        table.add(lKey).left().padRight(8).padBottom(12);
         table.add(lVal).left().padBottom(12).row();
     }
 
     @Override
-    public void render(float delta) {
+    public void render(float delta){
         Gdx.gl.glClearColor(0.118f, 0.118f, 0.180f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         stage.act(delta);
         stage.draw();
+        dibujarHUD();
     }
 
     @Override
@@ -104,6 +137,7 @@ public class ProfileScreen implements Screen {
 
     @Override
     public void dispose() {
+        disposeBase();
         stage.dispose();
         skin.dispose();
     }

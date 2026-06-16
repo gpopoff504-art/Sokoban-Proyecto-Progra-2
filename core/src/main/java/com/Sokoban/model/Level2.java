@@ -4,44 +4,46 @@
  */
 package com.Sokoban.model;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 /**
  *
  * @author Rogelio
  */
+public class Level2 extends Level{
 
-public class Level1 extends Level{
-
-    public Level1(){
+    public Level2(){
         cargarSprites();
         cargarMapa();
     }
 
     @Override
     protected String getRutaMapa(){ 
-        return "levels/level1.txt"; 
+        return "levels/level2.txt"; 
     }
 
     @Override
-    protected String getRutaMuro(){ 
-        return "sprites/Mapa/m1.png"; 
+    protected String getRutaMuro(){
+        return "sprites/Mapa/m2.png"; 
     }
 
     @Override
     protected String getRutaPiso(){ 
-        return "sprites/Mapa/p1.png"; }
+        return "sprites/Mapa/p2.png"; 
+    }
 
     @Override
     protected String getRutaObjetivo(){ 
-        return "sprites/Mapa/pc1.png";
+        return "sprites/Mapa/pc2.png";
     }
 
     @Override
-    public String getNombre(){
-        return "Nivel 1";
+    public String getNombre(){ 
+        return "Nivel 2"; 
     }
 
     @Override
-    public int getNivel(){
-        return 1;
+    public int getNivel(){ return 2;
     }
 }

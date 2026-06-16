@@ -23,7 +23,7 @@ import com.Sokoban.model.Player;
  *
  * @author gpopo
  */
-public class MenuScreen implements Screen {
+public class MenuScreen extends BaseScreen{
 
     private final Main game;
     private Stage stage;
@@ -35,6 +35,7 @@ public class MenuScreen implements Screen {
 
     @Override
     public void show() {
+        iniciarBase();
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
 
@@ -103,6 +104,7 @@ public class MenuScreen implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         stage.act(delta);
         stage.draw();
+        dibujarHUD();
     }
 
     @Override
@@ -116,6 +118,7 @@ public class MenuScreen implements Screen {
 
     @Override
     public void dispose() {
+        disposeBase();
         stage.dispose();
         skin.dispose();
     }

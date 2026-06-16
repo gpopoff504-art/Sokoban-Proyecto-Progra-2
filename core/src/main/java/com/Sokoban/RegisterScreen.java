@@ -36,7 +36,8 @@ public class RegisterScreen implements Screen {
     private Label lblMessage;
 
     private final AuthManager authManager = new AuthManager();
-
+    private String avatarSeleccionado = "aP";
+    
     public RegisterScreen(Main game) {
         this.game = game;
     }
@@ -121,9 +122,8 @@ public class RegisterScreen implements Screen {
             return;
         }
 
-        if (authManager.register(username, password, fullName)) {
-            showMessage("Cuenta creada exitosamente!", true);
-            game.setScreen(new LoginScreen(game));
+        if (authManager.register(username, password, fullName, "aP")) {
+            game.setScreen(new AvatarScreen(game, true));
             dispose();
         } else {
             showMessage("El nombre de usuario ya existe.", false);

@@ -23,7 +23,7 @@ import com.Sokoban.model.Player;
  *
  * @author gpopo
  */
-public class MapScreen implements Screen {
+public class MapScreen extends BaseScreen {
 
     private static final int TOTAL_LEVELS = 5;
 
@@ -36,7 +36,8 @@ public class MapScreen implements Screen {
     }
 
     @Override
-    public void show() {
+    public void show() {    
+        iniciarBase();
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
 
@@ -102,11 +103,12 @@ public class MapScreen implements Screen {
     }
 
     @Override
-    public void render(float delta) {
+    public void render(float delta){
         Gdx.gl.glClearColor(0.118f, 0.118f, 0.180f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         stage.act(delta);
         stage.draw();
+        dibujarHUD();
     }
 
     @Override
@@ -120,6 +122,7 @@ public class MapScreen implements Screen {
 
     @Override
     public void dispose() {
+        disposeBase();
         stage.dispose();
         skin.dispose();
     }
