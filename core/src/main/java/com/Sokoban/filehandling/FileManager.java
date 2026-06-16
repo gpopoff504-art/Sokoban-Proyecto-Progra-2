@@ -24,13 +24,10 @@ public class FileManager {
     public static boolean savePlayer(Player player) {
         String folderPath = USERS_ROOT + player.getUsername() + "/";
         File folder = new File(folderPath);
-
         if (!folder.exists()) {
             folder.mkdirs();
         }
-
         File file = new File(folderPath + PLAYER_FILE);
-
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
             oos.writeObject(player);
             return true;
@@ -40,15 +37,12 @@ public class FileManager {
         }
     }
 
-
     public static Player loadPlayer(String username) {
         String filePath = USERS_ROOT + username + "/" + PLAYER_FILE;
         File file = new File(filePath);
-
         if (!file.exists()) {
             return null;
         }
-
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
             return (Player) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
@@ -57,10 +51,30 @@ public class FileManager {
         }
     }
 
-
     public static boolean playerExists(String username) {
         String filePath = USERS_ROOT + username + "/" + PLAYER_FILE;
         return new File(filePath).exists();
+    }
+
+    public static boolean renameUserFolder(String oldUsername, String newUsername) {
+        File oldFolder = new File(USERS_ROOT + oldUsername + "/");
+        File newFolder = new File(USERS_ROOT + newUsername + "/");
+
+        if (!oldFolder.exists()) {
+            System.err.println("renameUserFolder: carpeta origen no existe: " + oldFolder.getPath());
+            return false;
+        }
+        if (newFolder.exists()) {
+            System.err.println("renameUserFolder: carpeta destino ya existe: " + newFolder.getPath());
+            return false;
+        }
+
+        boolean ok = oldFolder.renameTo(newFolder);
+        if (!ok) {
+            System.err.println("renameUserFolder: no se pudo renombrar de '"
+                    + oldFolder.getPath() + "' a '" + newFolder.getPath() + "'");
+        }
+        return ok;
     }
 
     public static boolean deletePlayer(String username) {
@@ -68,12 +82,14 @@ public class FileManager {
         if (!folder.exists()) {
             return false;
         }
-        for (File file : folder.listFiles()) {
-            file.delete();
+        File[] files = folder.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                file.delete();
+            }
         }
         return folder.delete();
     }
-
 
     public static boolean createUserFolder(String username) {
         File folder = new File(USERS_ROOT + username + "/");

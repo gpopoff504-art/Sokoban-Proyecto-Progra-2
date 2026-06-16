@@ -17,13 +17,14 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.Sokoban.model.AuthManager;
+import com.Sokoban.model.LanguageManager;
 import com.Sokoban.model.Player;
 
 /**
  *
  * @author gpopo
  */
-public class MenuScreen extends BaseScreen{
+public class MenuScreen extends BaseScreen {
 
     private final Main game;
     private Stage stage;
@@ -42,6 +43,11 @@ public class MenuScreen extends BaseScreen{
         skin = new Skin(Gdx.files.internal("uiskin.json"));
 
         Player player = AuthManager.getCurrentPlayer();
+        
+        if (player != null) {
+            LanguageManager.initFromPlayer(player);
+        }
+
         String name   = (player != null) ? player.getFullName() : "Jugador";
         int level     = (player != null) ? player.getCurrentLevel() : 1;
         int score     = (player != null) ? player.getTotalScore()   : 0;
@@ -55,15 +61,16 @@ public class MenuScreen extends BaseScreen{
         lblTitle.setColor(new Color(0.537f, 0.863f, 0.922f, 1f));
         lblTitle.setFontScale(2.4f);
 
-        Label lblWelcome = new Label("Hola, " + name + "!", skin);
+        Label lblWelcome = new Label(LanguageManager.get(LanguageManager.KEY_WELCOME) + " " + name + "!", skin);
         lblWelcome.setColor(new Color(0.651f, 0.678f, 0.784f, 1f));
 
-        Label lblStats = new Label("Nivel " + level + "   |   " + score + " pts", skin);
+        Label lblStats = new Label(LanguageManager.get(LanguageManager.KEY_LEVEL) + ": " + level + "   |   " + score + " pts", skin);
         lblStats.setColor(new Color(0.976f, 0.886f, 0.686f, 1f));
 
-        TextButton btnPlay     = new TextButton("Jugar",          skin);
-        TextButton btnProfile  = new TextButton("Mi Perfil",      skin);
-        TextButton btnLogout   = new TextButton("Cerrar Sesion",  skin);
+        TextButton btnPlay     = new TextButton(LanguageManager.get(LanguageManager.KEY_PLAY), skin);
+        TextButton btnProfile  = new TextButton(LanguageManager.get(LanguageManager.KEY_PROFILE), skin);
+        TextButton btnSettings = new TextButton(LanguageManager.get(LanguageManager.KEY_SETTINGS), skin);
+        TextButton btnLogout   = new TextButton(LanguageManager.get(LanguageManager.KEY_LOGOUT), skin);
 
         root.pad(40);
         root.add(lblTitle).center().padBottom(8).row();
@@ -71,30 +78,43 @@ public class MenuScreen extends BaseScreen{
         root.add(lblStats).center().padBottom(36).row();
         root.add(btnPlay).width(280).height(52).padBottom(12).row();
         root.add(btnProfile).width(280).height(52).padBottom(12).row();
+        root.add(btnSettings).width(280).height(52).padBottom(12).row();
         root.add(btnLogout).width(280).height(52).row();
 
         btnPlay.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
+                Screen oldScreen = game.getScreen();
                 game.setScreen(new MapScreen(game));
-                dispose();
+                if (oldScreen != null) oldScreen.dispose();
             }
         });
 
         btnProfile.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
+                Screen oldScreen = game.getScreen();
                 game.setScreen(new ProfileScreen(game));
-                dispose();
+                if (oldScreen != null) oldScreen.dispose();
+            }
+        });
+
+        btnSettings.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                Screen oldScreen = game.getScreen();
+                game.setScreen(new SettingsScreen(game));
+                if (oldScreen != null) oldScreen.dispose();
             }
         });
 
         btnLogout.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
+                Screen oldScreen = game.getScreen();
                 game.setScreen(new LoginScreen(game));
-                dispose();
-            }
+                if (oldScreen != null) oldScreen.dispose();
+            }         
         });
     }
 
@@ -119,7 +139,7 @@ public class MenuScreen extends BaseScreen{
     @Override
     public void dispose() {
         disposeBase();
-        stage.dispose();
-        skin.dispose();
+        if (stage != null) stage.dispose();
+        if (skin != null) skin.dispose();
     }
 }

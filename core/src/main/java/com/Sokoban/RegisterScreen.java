@@ -18,6 +18,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.Sokoban.model.AuthManager;
+import com.Sokoban.model.LanguageManager;
 
 /**
  *
@@ -36,7 +37,6 @@ public class RegisterScreen implements Screen {
     private Label lblMessage;
 
     private final AuthManager authManager = new AuthManager();
-    private String avatarSeleccionado = "aP";
     
     public RegisterScreen(Main game) {
         this.game = game;
@@ -58,12 +58,12 @@ public class RegisterScreen implements Screen {
         lblTitle.setColor(new Color(0.537f, 0.863f, 0.922f, 1f));
         lblTitle.setFontScale(1.8f);
 
-        txtUsername = makeField("Nombre de usuario");
+        txtUsername = makeField(LanguageManager.get(LanguageManager.KEY_NEW_USERNAME));
         txtFullName = makeField("Nombre completo");
-        txtPassword = makeField("Contrasena (min. 6 caracteres)");
+        txtPassword = makeField(LanguageManager.get(LanguageManager.KEY_NEW_PASSWORD));
         txtPassword.setPasswordMode(true);
         txtPassword.setPasswordCharacter('*');
-        txtConfirm  = makeField("Confirmar contrasena");
+        txtConfirm  = makeField("Confirmar contraseña");
         txtConfirm.setPasswordMode(true);
         txtConfirm.setPasswordCharacter('*');
 
@@ -71,17 +71,17 @@ public class RegisterScreen implements Screen {
         lblMessage.setColor(new Color(0.953f, 0.545f, 0.659f, 1f));
 
         TextButton btnRegister = new TextButton("Registrarse", skin);
-        TextButton btnBack     = new TextButton("Volver al inicio", skin);
+        TextButton btnBack     = new TextButton(LanguageManager.get(LanguageManager.KEY_BACK), skin);
 
         root.pad(40);
         root.add(lblTitle).center().padBottom(24).row();
-        root.add(makeLabel("Usuario", skin)).left().padBottom(4).row();
+        root.add(makeLabel(LanguageManager.get(LanguageManager.KEY_USERNAME), skin)).left().padBottom(4).row();
         root.add(txtUsername).width(320).padBottom(12).row();
         root.add(makeLabel("Nombre completo", skin)).left().padBottom(4).row();
         root.add(txtFullName).width(320).padBottom(12).row();
-        root.add(makeLabel("Contrasena", skin)).left().padBottom(4).row();
+        root.add(makeLabel(LanguageManager.get(LanguageManager.KEY_PASSWORD), skin)).left().padBottom(4).row();
         root.add(txtPassword).width(320).padBottom(12).row();
-        root.add(makeLabel("Confirmar contrasena", skin)).left().padBottom(4).row();
+        root.add(makeLabel("Confirmar contraseña", skin)).left().padBottom(4).row();
         root.add(txtConfirm).width(320).padBottom(8).row();
         root.add(lblMessage).center().padBottom(8).row();
         root.add(btnRegister).width(320).height(48).padBottom(10).row();
@@ -97,8 +97,9 @@ public class RegisterScreen implements Screen {
         btnBack.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
+                Screen oldScreen = game.getScreen();
                 game.setScreen(new LoginScreen(game));
-                dispose();
+                if (oldScreen != null) oldScreen.dispose();
             }
         });
     }
@@ -114,19 +115,20 @@ public class RegisterScreen implements Screen {
             return;
         }
         if (!password.equals(confirm)) {
-            showMessage("Las contrasenas no coinciden.", false);
+            showMessage("Las contraseñas no coinciden.", false);
             return;
         }
         if (password.length() < 6) {
-            showMessage("La contrasena debe tener al menos 6 caracteres.", false);
+            showMessage("La contraseña debe tener al menos 6 caracteres.", false);
             return;
         }
 
         if (authManager.register(username, password, fullName, "aP")) {
+            Screen oldScreen = game.getScreen();
             game.setScreen(new AvatarScreen(game, true));
-            dispose();
+            if (oldScreen != null) oldScreen.dispose();
         } else {
-            showMessage("El nombre de usuario ya existe.", false);
+            showMessage(LanguageManager.get(LanguageManager.KEY_ERR_TAKEN), false);
         }
     }
 
@@ -168,7 +170,7 @@ public class RegisterScreen implements Screen {
 
     @Override
     public void dispose() {
-        stage.dispose();
-        skin.dispose();
+        if (stage != null) stage.dispose();
+        if (skin != null) skin.dispose();
     }
 }
