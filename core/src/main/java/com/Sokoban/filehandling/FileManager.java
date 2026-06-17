@@ -79,16 +79,19 @@ public class FileManager {
 
     public static boolean deletePlayer(String username) {
         File folder = new File(USERS_ROOT + username + "/");
-        if (!folder.exists()) {
-            return false;
-        }
-        File[] files = folder.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                file.delete();
+        if (!folder.exists()) return false;
+        borrarRecursivo(folder);
+        return true;
+
+    }
+    
+    private static void borrarRecursivo(File archivo) {
+        if (archivo.isDirectory()) {
+            for (File hijo: archivo.listFiles()){
+                borrarRecursivo(hijo);
             }
         }
-        return folder.delete();
+        archivo.delete();
     }
 
     public static boolean createUserFolder(String username) {

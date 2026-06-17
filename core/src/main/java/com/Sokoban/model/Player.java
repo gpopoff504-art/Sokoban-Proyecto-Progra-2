@@ -19,6 +19,7 @@ public class Player implements Serializable {
     
     private int nivelesCompletados = 0;
     private long tiempoTotalNiveles = 0;
+    private int[] mejoresPuntajesPorNivel = new int[6];
     
     private String username;
     private String password;
@@ -119,5 +120,22 @@ public class Player implements Serializable {
     public String toString() {
         return "Player{username='" + username + "', fullName='" + fullName + 
                "', currentLevel=" + currentLevel + ", totalScore=" + totalScore + "}";
+    }
+    
+    public int getMejorPuntajeNivel(int nivel) {
+        if(nivel < 1 || nivel >5 ) return 0;
+        return mejoresPuntajesPorNivel[nivel];
+    }
+    
+    public boolean actualizarPuntajeNivel(int nivel, int nuevoPuntaje) {
+        if (nivel < 1 || nivel > 5) return false;
+        int anterior = mejoresPuntajesPorNivel[nivel];
+        if (nuevoPuntaje > anterior) {
+            int diferencia = nuevoPuntaje - anterior;
+            mejoresPuntajesPorNivel[nivel] = nuevoPuntaje;
+            totalScore += diferencia;
+            return true;
+        }
+        return false;
     }
 }

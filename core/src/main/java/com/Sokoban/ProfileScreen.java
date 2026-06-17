@@ -15,6 +15,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.Sokoban.model.AuthManager;
@@ -32,7 +33,7 @@ public class ProfileScreen extends BaseScreen {
     private Stage stage;
     private Skin skin;
     private Texture texAvatar;
-    
+
     public ProfileScreen(Main game) {
         this.game = game;
     }
@@ -43,11 +44,10 @@ public class ProfileScreen extends BaseScreen {
         Player player = AuthManager.getCurrentPlayer();
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
-
         skin = new Skin(Gdx.files.internal("uiskin.json"));
-        
-        String rutaAvatar = (player != null && !player.getAvatarPath().equals("default")) 
-            ? "avatars/" + player.getAvatarPath() + ".png" 
+
+        String rutaAvatar = (player != null && !player.getAvatarPath().equals("default"))
+            ? "avatars/" + player.getAvatarPath() + ".png"
             : "avatars/aP.png";
         texAvatar = new Texture(Gdx.files.internal(rutaAvatar));
 
@@ -59,7 +59,7 @@ public class ProfileScreen extends BaseScreen {
         Label lblTitle = new Label(LanguageManager.get("my_profile"), skin);
         lblTitle.setColor(new Color(0.537f, 0.863f, 0.922f, 1f));
         lblTitle.setFontScale(1.8f);
-        root.center().pad(40);   
+        root.center().pad(40);
         root.add(lblTitle).center().padBottom(28).colspan(2).row();
 
         if (player != null) {
@@ -70,24 +70,20 @@ public class ProfileScreen extends BaseScreen {
             addRow(root, skin, LanguageManager.get("registered"), player.getRegistrationDate().toLocalDate().toString());
             addRow(root, skin, LanguageManager.get("last_session"), player.getLastSession().toLocalDate().toString());
             addRow(root, skin, LanguageManager.get("completed_levels"), String.valueOf(player.getNivelesCompletados()));
-            addRow(root, skin, LanguageManager.get("average_time_per_level"), (int)player.getTiempoPromedioPorNivel() + "s");
+            addRow(root, skin, LanguageManager.get("average_time_per_level"), (int) player.getTiempoPromedioPorNivel() + "s");
+
             long tiempo = player.getTotalTimePlayed();
             long horas = tiempo / 3600;
             long minutos = (tiempo % 3600) / 60;
             long segundos = tiempo % 60;
             String tiempoFormato;
-            if (horas > 0) {
-                tiempoFormato = horas + "h " + minutos + "m " + segundos + "s";
-            } else if (minutos > 0) {
-                tiempoFormato = minutos + "m " + segundos + "s";
-            } else {
-                tiempoFormato = segundos + "s";
-            }
+            if (horas > 0) tiempoFormato = horas + "h " + minutos + "m " + segundos + "s";
+            else if (minutos > 0) tiempoFormato = minutos + "m " + segundos + "s";
+            else tiempoFormato = segundos + "s";
             addRow(root, skin, LanguageManager.get("total_time"), tiempoFormato);
 
             TextButton btnAvatar = new TextButton(LanguageManager.get("change_avatar"), skin);
             root.add(btnAvatar).colspan(2).center().width(280).height(48).padTop(16).row();
-
             btnAvatar.addListener(new ChangeListener() {
                 @Override
                 public void changed(ChangeEvent event, Actor actor) {
@@ -96,18 +92,28 @@ public class ProfileScreen extends BaseScreen {
                     if (oldScreen != null) oldScreen.dispose();
                 }
             });
+
             TextButton btnDesactivar = new TextButton(LanguageManager.get("deactivate"), skin);
             btnDesactivar.setColor(new Color(0.950f, 0.380f, 0.380f, 1f));
             root.add(btnDesactivar).colspan(2).center().width(280).height(48).padTop(8).row();
-
-            btnDesactivar.addListener(new ChangeListener(){
+            btnDesactivar.addListener(new ChangeListener() {
                 @Override
-                public void changed(ChangeEvent event, Actor actor){
+                public void changed(ChangeEvent event, Actor actor) {
                     player.setActiva(false);
                     FileManager.savePlayer(player);
                     AuthManager.setCurrentPlayer(null);
                     game.setScreen(new LoginScreen(game));
                     dispose();
+                }
+            });
+
+            TextButton btnBorrar = new TextButton(LanguageManager.get("delete_account"), skin);
+            btnBorrar.setColor(new Color(0.800f, 0.100f, 0.100f, 1f));
+            root.add(btnBorrar).colspan(2).center().width(280).height(48).padTop(8).row();
+            btnBorrar.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    mostrarConfirmacionBorrar(player);
                 }
             });
         }
@@ -120,6 +126,65 @@ public class ProfileScreen extends BaseScreen {
                 Screen oldScreen = game.getScreen();
                 game.setScreen(new MenuScreen(game));
                 if (oldScreen != null) oldScreen.dispose();
+            }
+        });
+    }
+
+    private void mostrarConfirmacionBorrar(Player player) {
+        Table dialogo = new Table();
+        dialogo.setFillParent(true);
+        dialogo.setBackground(skin.newDrawable("white", new Color(0f, 0f, 0f, 0.75f)));
+        stage.addActor(dialogo);
+
+        Label lblAviso = new Label(LanguageManager.get("confirm_delete"), skin);
+        lblAviso.setColor(new Color(0.953f, 0.545f, 0.659f, 1f));
+
+        Label lblPidePass = new Label(LanguageManager.get("enter_password_confirm"), skin);
+        lblPidePass.setColor(Color.WHITE);
+
+        TextField txtConfirmPass = new TextField("", skin);
+        txtConfirmPass.setPasswordMode(true);
+        txtConfirmPass.setPasswordCharacter('*');
+        txtConfirmPass.setMessageText(LanguageManager.get("password"));
+
+        Label lblError = new Label("", skin);
+        lblError.setColor(new Color(0.953f, 0.545f, 0.659f, 1f));
+
+        TextButton btnConfirmar = new TextButton(LanguageManager.get("delete_account"), skin);
+        btnConfirmar.setColor(new Color(0.800f, 0.100f, 0.100f, 1f));
+        TextButton btnCancelar = new TextButton(LanguageManager.get("cancel"), skin);
+
+        dialogo.center();
+        dialogo.add(lblAviso).padBottom(16).colspan(2).row();
+        dialogo.add(lblPidePass).padBottom(8).colspan(2).row();
+        dialogo.add(txtConfirmPass).width(280).height(40).padBottom(8).colspan(2).row();
+        dialogo.add(lblError).padBottom(8).colspan(2).row();
+        dialogo.add(btnConfirmar).width(180).height(48).padRight(8);
+        dialogo.add(btnCancelar).width(180).height(48).row();
+
+        btnConfirmar.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                String passIngresada = txtConfirmPass.getText();
+                if (passIngresada.isEmpty()) {
+                    lblError.setText(LanguageManager.get("err_empty"));
+                    return;
+                }
+                if (!player.getPassword().equals(passIngresada)) {
+                    lblError.setText(LanguageManager.get("wrong_password"));
+                    return;
+                }
+                FileManager.deletePlayer(player.getUsername());
+                AuthManager.setCurrentPlayer(null);
+                game.setScreen(new LoginScreen(game));
+                dispose();
+            }
+        });
+
+        btnCancelar.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                dialogo.remove();
             }
         });
     }

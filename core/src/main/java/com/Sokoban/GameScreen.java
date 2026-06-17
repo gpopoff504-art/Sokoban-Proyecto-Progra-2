@@ -27,12 +27,14 @@ import com.Sokoban.model.Level5;
 import com.Sokoban.model.AuthManager;
 import com.Sokoban.model.Player;
 import com.Sokoban.filehandling.FileManager;
+import com.Sokoban.filehandling.RankingFileManager;
 import com.Sokoban.model.LanguageManager;
+
 /**
  *
  * @author gpopo
  */
-public class GameScreen implements Screen{
+public class GameScreen implements Screen {
 
     private final Main game;
     private final int level;
@@ -54,20 +56,21 @@ public class GameScreen implements Screen{
     private Label lblMovimientos;
     private Label lblTiempoVictoria;
     private Label lblMovsVictoria;
+    private Label lblPuntajeVictoria;
 
-    public GameScreen(Main game, int level){
+    public GameScreen(Main game, int level) {
         this.game = game;
         this.level = level;
     }
 
     @Override
-    public void show(){
+    public void show() {
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
         skin = new Skin(Gdx.files.internal("uiskin.json"));
         batch = new SpriteBatch();
-        
-        switch(level){
+
+        switch (level) {
             case 1: nivelActual = new Level1(); break;
             case 2: nivelActual = new Level2(); break;
             case 3: nivelActual = new Level3(); break;
@@ -75,11 +78,12 @@ public class GameScreen implements Screen{
             case 5: nivelActual = new Level5(); break;
             default: nivelActual = new Level1(); break;
         }
+
         offsetX = (Gdx.graphics.getWidth() - nivelActual.getColumnas() * TILE_SIZE) / 2;
         offsetY = (Gdx.graphics.getHeight() - nivelActual.getFilas() * TILE_SIZE) / 2;
         jugador = new Jugador(nivelActual.getJugadorX(), nivelActual.getJugadorY());
 
-        // HUD arriba con timer
+        // HUD arriba
         Table hud = new Table();
         hud.setFillParent(true);
         hud.top().pad(10);
@@ -97,7 +101,7 @@ public class GameScreen implements Screen{
         lblMovimientos.setColor(new Color(0.976f, 0.886f, 0.686f, 1f));
         hud.add(lblMovimientos).expandX().right().padRight(20);
 
-        // Boton volver
+        // Botones abajo
         Table rootBottom = new Table();
         rootBottom.setFillParent(true);
         rootBottom.bottom().pad(10);
@@ -105,27 +109,27 @@ public class GameScreen implements Screen{
 
         TextButton btnBack = new TextButton(LanguageManager.get("back_map"), skin);
         rootBottom.add(btnBack).width(240).height(48);
-        btnBack.addListener(new ChangeListener(){
+        btnBack.addListener(new ChangeListener() {
             @Override
-            public void changed(ChangeEvent event, Actor actor){
+            public void changed(ChangeEvent event, Actor actor) {
                 Player player = AuthManager.getCurrentPlayer();
-                if(player != null){
-                    player.setTotalTimePlayed(player.getTotalTimePlayed() + (long)tiempoTotal);
+                if (player != null) {
+                    player.setTotalTimePlayed(player.getTotalTimePlayed() + (long) tiempoTotal);
                     FileManager.savePlayer(player);
                 }
                 game.setScreen(new MapScreen(game));
                 dispose();
             }
         });
+
         TextButton btnReset = new TextButton(LanguageManager.get("reset"), skin);
         rootBottom.add(btnReset).width(140).height(48).padLeft(10);
-
-        btnReset.addListener(new ChangeListener(){
+        btnReset.addListener(new ChangeListener() {
             @Override
-            public void changed(ChangeEvent event, Actor actor){
+            public void changed(ChangeEvent event, Actor actor) {
                 Player player = AuthManager.getCurrentPlayer();
-                if(player != null){
-                    player.setTotalTimePlayed(player.getTotalTimePlayed() + (long)tiempoTotal);
+                if (player != null) {
+                    player.setTotalTimePlayed(player.getTotalTimePlayed() + (long) tiempoTotal);
                     FileManager.savePlayer(player);
                 }
                 game.setScreen(new GameScreen(game, level));
@@ -151,20 +155,26 @@ public class GameScreen implements Screen{
         lblMovsVictoria = new Label(LanguageManager.get("movements") + ": 0", skin);
         lblMovsVictoria.setColor(Color.WHITE);
 
-        TextButton btnSiguiente = new TextButton(level == 5 ? LanguageManager.get("back_menu") : LanguageManager.get("next_level"), skin);
+        lblPuntajeVictoria = new Label("", skin);
+        lblPuntajeVictoria.setColor(new Color(0.976f, 0.886f, 0.686f, 1f));
+        lblPuntajeVictoria.setFontScale(1.3f);
+
+        TextButton btnSiguiente = new TextButton(
+            level == 5 ? LanguageManager.get("back_menu") : LanguageManager.get("next_level"), skin);
 
         overlay.center();
         overlay.add(lblGano).padBottom(16).row();
         overlay.add(lblTiempoVictoria).padBottom(8).row();
-        overlay.add(lblMovsVictoria).padBottom(24).row();
+        overlay.add(lblMovsVictoria).padBottom(8).row();
+        overlay.add(lblPuntajeVictoria).padBottom(24).row();
         overlay.add(btnSiguiente).width(240).height(48).row();
 
-        btnSiguiente.addListener(new ChangeListener(){
+        btnSiguiente.addListener(new ChangeListener() {
             @Override
-            public void changed(ChangeEvent event, Actor actor){
-                if(level == 5){
+            public void changed(ChangeEvent event, Actor actor) {
+                if (level == 5) {
                     game.setScreen(new MenuScreen(game));
-                }else{
+                } else {
                     game.setScreen(new GameScreen(game, level + 1));
                 }
                 dispose();
@@ -172,59 +182,59 @@ public class GameScreen implements Screen{
         });
     }
 
-    private void handleInput(){
-        if(gano) return;
+    private void handleInput() {
+        if (gano) return;
         int dx = 0, dy = 0;
         String dir = null;
 
-        if(Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.LEFT) ||
-                Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.A)){
+        if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.LEFT) ||
+                Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.A)) {
             dx = -1; dir = "left";
-        }else if(Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.RIGHT) ||
-                Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.D)){
+        } else if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.RIGHT) ||
+                Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.D)) {
             dx = 1; dir = "right";
-        }else if(Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.UP) ||
-                Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.W)){
+        } else if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.UP) ||
+                Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.W)) {
             dy = -1; dir = "up";
-        }else if(Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.DOWN) ||
-                Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.S)){
+        } else if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.DOWN) ||
+                Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.S)) {
             dy = 1; dir = "down";
         }
 
-        if(dir != null){
+        if (dir != null) {
             moverJugador(dx, dy, dir);
         }
     }
 
-    private void moverJugador(int dx, int dy, String dir){
+    private void moverJugador(int dx, int dy, String dir) {
         int[][] mapa = nivelActual.getMapa();
         int px = jugador.getGridX();
         int py = jugador.getGridY();
         int nx = px + dx;
         int ny = py + dy;
 
-        if(nx < 0 || ny < 0 || ny >= nivelActual.getFilas() || nx >= nivelActual.getColumnas()) return;
+        if (nx < 0 || ny < 0 || ny >= nivelActual.getFilas() || nx >= nivelActual.getColumnas()) return;
 
         int celda = mapa[ny][nx];
 
-        if(celda == Level.MURO || celda == Level.VACIO){
+        if (celda == Level.MURO || celda == Level.VACIO) {
             jugador.setIdle();
             return;
         }
 
-        if(celda == Level.CAJA){
+        if (celda == Level.CAJA) {
             int cx = nx + dx;
             int cy = ny + dy;
-            if(cx < 0 || cy < 0 || cy >= nivelActual.getFilas() || cx >= nivelActual.getColumnas()) return;
+            if (cx < 0 || cy < 0 || cy >= nivelActual.getFilas() || cx >= nivelActual.getColumnas()) return;
             int detras = mapa[cy][cx];
-            if(detras == Level.MURO || detras == Level.CAJA || detras == Level.VACIO){
+            if (detras == Level.MURO || detras == Level.CAJA || detras == Level.VACIO) {
                 jugador.setIdle();
                 return;
             }
             mapa[cy][cx] = Level.CAJA;
             mapa[ny][nx] = (nivelActual.getMapaObjetivos()[ny][nx] == Level.OBJETIVO) ? Level.OBJETIVO : Level.PISO;
             jugador.setMoviendo(dir, true);
-        }else{
+        } else {
             jugador.setMoviendo(dir, false);
         }
 
@@ -233,12 +243,12 @@ public class GameScreen implements Screen{
         movimientos++;
     }
 
-    private boolean verificarVictoria(){
+    private boolean verificarVictoria() {
         int[][] mapa = nivelActual.getMapa();
         int[][] mapaOriginal = nivelActual.getMapaObjetivos();
-        for(int f = 0; f < nivelActual.getFilas(); f++){
-            for(int c = 0; c < nivelActual.getColumnas(); c++){
-                if(mapaOriginal[f][c] == Level.OBJETIVO && mapa[f][c] != Level.CAJA){
+        for (int f = 0; f < nivelActual.getFilas(); f++) {
+            for (int c = 0; c < nivelActual.getColumnas(); c++) {
+                if (mapaOriginal[f][c] == Level.OBJETIVO && mapa[f][c] != Level.CAJA) {
                     return false;
                 }
             }
@@ -246,18 +256,56 @@ public class GameScreen implements Screen{
         return true;
     }
 
-    @Override   
-    public void render(float delta){
+    private void procesarVictoria() {
+        gano = true;
+
+        int seg = (int) tiempoTotal;
+        int centesimas = (int) ((tiempoTotal - seg) * 100);
+        lblTiempoVictoria.setText(LanguageManager.get("time") + ": " + seg + "." + String.format("%02d", centesimas) + "s");
+        lblMovsVictoria.setText(LanguageManager.get("movements") + ": " + movimientos);
+        panelVictoria.setVisible(true);
+
+        Player player = AuthManager.getCurrentPlayer();
+        if (player != null) {
+            // Calcular puntaje: base 1000, -10 por movimiento, -5 por segundo, minimo 100
+            int puntaje = Math.max(100, 1000 - (movimientos * 10) - ((int) tiempoTotal * 5));
+            boolean nuevoPuntaje = player.actualizarPuntajeNivel(level, puntaje);
+
+            // Guardar en ranking global
+            RankingFileManager.guardarOActualizar(player.getUsername(), puntaje, level);
+
+            // Mostrar puntaje en panel
+            String estrellaMsg = nuevoPuntaje ? " ★ " + LanguageManager.get("new_record") : "";
+            lblPuntajeVictoria.setText(puntaje + " pts" + estrellaMsg);
+            if (nuevoPuntaje) lblPuntajeVictoria.setColor(new Color(0.651f, 0.890f, 0.631f, 1f));
+
+            // Actualizar progreso
+            if (level >= player.getCurrentLevel() && level < 5) {
+                player.setCurrentLevel(level + 1);
+            }
+            player.setTotalTimePlayed(player.getTotalTimePlayed() + (long) tiempoTotal);
+            player.setNivelesCompletados(player.getNivelesCompletados() + 1);
+            player.setTiempoTotalNiveles(player.getTiempoTotalNiveles() + (long) tiempoTotal);
+            player.addGameHistory(LanguageManager.get("level") + " " + level + " - " +
+                LanguageManager.get("time") + ": " + seg + "s - " +
+                LanguageManager.get("movements") + ": " + movimientos + " - " + puntaje + " pts");
+            FileManager.savePlayer(player);
+        }
+    }
+
+    @Override
+    public void render(float delta) {
         Gdx.gl.glClearColor(0.118f, 0.118f, 0.180f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        if(!gano && movimientos > 0){
+        if (!gano && movimientos > 0) {
             tiempoTotal += delta;
             int seg = (int) tiempoTotal;
-            int centesimas = (int)((tiempoTotal - seg) * 100);
-            lblTiempo.setText(LanguageManager.get("time") +" : " + seg + "." + String.format("%02d", centesimas) + "s");
+            int centesimas = (int) ((tiempoTotal - seg) * 100);
+            lblTiempo.setText(LanguageManager.get("time") + " : " + seg + "." + String.format("%02d", centesimas) + "s");
             lblMovimientos.setText(LanguageManager.get("movements") + ": " + movimientos);
         }
+
         handleInput();
         jugador.update(delta);
 
@@ -266,23 +314,8 @@ public class GameScreen implements Screen{
         jugador.render(batch, TILE_SIZE, offsetX, offsetY, nivelActual.getFilas());
         batch.end();
 
-        if(!gano && verificarVictoria()){
-            gano = true;
-            int seg = (int) tiempoTotal;
-            int centesimas = (int)((tiempoTotal - seg) * 100);
-            lblTiempoVictoria.setText(LanguageManager.get("time") + ": " + seg + "." + String.format("%02d", centesimas) + "s");
-            lblMovsVictoria.setText(LanguageManager.get("movements") + ": " + movimientos);
-            panelVictoria.setVisible(true);
-            Player player = AuthManager.getCurrentPlayer();
-            if(player != null){
-                if(level >= player.getCurrentLevel() && level < 5){
-                    player.setCurrentLevel(level + 1);
-                }
-                player.setTotalTimePlayed(player.getTotalTimePlayed() + (long)tiempoTotal);
-                player.setNivelesCompletados(player.getNivelesCompletados() + 1);
-                player.setTiempoTotalNiveles(player.getTiempoTotalNiveles() + (long)tiempoTotal);
-                player.addGameHistory(LanguageManager.get("level") + " " + level + " - " + LanguageManager.get("time") + ": " + (int)tiempoTotal + "s - " + LanguageManager.get("movements") + ": " + movimientos);            
-            }
+        if (!gano && verificarVictoria()) {
+            procesarVictoria();
         }
 
         stage.act(delta);
@@ -290,16 +323,16 @@ public class GameScreen implements Screen{
     }
 
     @Override
-    public void resize(int width, int height){
+    public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
     }
 
-    @Override public void pause(){}
-    @Override public void resume(){}
-    @Override public void hide(){}
+    @Override public void pause() {}
+    @Override public void resume() {}
+    @Override public void hide() {}
 
     @Override
-    public void dispose(){
+    public void dispose() {
         stage.dispose();
         skin.dispose();
         batch.dispose();

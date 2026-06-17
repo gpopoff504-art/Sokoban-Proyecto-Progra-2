@@ -5,6 +5,9 @@
 package com.Sokoban;
 
 import com.Sokoban.filehandling.FileManager;
+import com.Sokoban.model.AuthManager;
+import com.Sokoban.model.LanguageManager;
+import com.Sokoban.model.Player;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
@@ -18,9 +21,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import com.Sokoban.model.AuthManager;
-import com.Sokoban.model.LanguageManager;
-import com.Sokoban.model.Player;
 
 /**
  *
@@ -35,6 +35,8 @@ public class LoginScreen implements Screen {
     private TextField txtUsername;
     private TextField txtPassword;
     private Label lblMessage;
+    private TextButton btnTogglePassword;
+    private boolean passwordVisible = false;
 
     private final AuthManager authManager = new AuthManager();
 
@@ -46,7 +48,6 @@ public class LoginScreen implements Screen {
     public void show() {
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
-
         skin = new Skin(Gdx.files.internal("uiskin.json"));
 
         Table root = new Table();
@@ -58,39 +59,53 @@ public class LoginScreen implements Screen {
         lblTitle.setColor(new Color(0.537f, 0.863f, 0.922f, 1f));
         lblTitle.setFontScale(2.2f);
 
-        Label lblSub = new Label("Iniciar Sesion", skin);
+        Label lblSub = new Label(LanguageManager.get("login"), skin);
         lblSub.setColor(new Color(0.804f, 0.831f, 0.957f, 1f));
 
-        Label lblUser = new Label("Usuario", skin);
+        Label lblUser = new Label(LanguageManager.get("username"), skin);
         lblUser.setColor(Color.WHITE);
 
         txtUsername = new TextField("", skin);
-        txtUsername.setMessageText("Ingresa tu usuario");
+        txtUsername.setMessageText(LanguageManager.get("username"));
 
-        Label lblPass = new Label("Contrasena", skin);
+        Label lblPass = new Label(LanguageManager.get("password"), skin);
         lblPass.setColor(Color.WHITE);
 
         txtPassword = new TextField("", skin);
-        txtPassword.setMessageText("Ingresa tu contrasena");
+        txtPassword.setMessageText(LanguageManager.get("password"));
         txtPassword.setPasswordMode(true);
         txtPassword.setPasswordCharacter('*');
+
+        btnTogglePassword = new TextButton(LanguageManager.get("show_password"), skin);
 
         lblMessage = new Label("", skin);
         lblMessage.setColor(new Color(0.953f, 0.545f, 0.659f, 1f));
 
-        TextButton btnLogin    = new TextButton("Iniciar Sesion",   skin);
-        TextButton btnRegister = new TextButton("Crear cuenta nueva", skin);
+        TextButton btnLogin    = new TextButton(LanguageManager.get("login"), skin);
+        TextButton btnRegister = new TextButton(LanguageManager.get("create_account"), skin);
 
         root.pad(40);
         root.add(lblTitle).colspan(2).center().padBottom(4).row();
         root.add(lblSub).colspan(2).center().padBottom(30).row();
-        root.add(lblUser).left().padBottom(4).row();
-        root.add(txtUsername).width(320).padBottom(16).row();
-        root.add(lblPass).left().padBottom(4).row();
-        root.add(txtPassword).width(320).padBottom(8).row();
+        root.add(lblUser).colspan(2).left().padBottom(4).row();
+        root.add(txtUsername).colspan(2).width(320).padBottom(16).row();
+        root.add(lblPass).colspan(2).left().padBottom(4).row();
+        root.add(txtPassword).width(220).padBottom(8);
+        root.add(btnTogglePassword).width(92).height(36).padLeft(8).padBottom(8).row();
         root.add(lblMessage).colspan(2).center().padBottom(8).row();
-        root.add(btnLogin).width(320).height(48).padBottom(10).row();
-        root.add(btnRegister).width(320).height(48).row();
+        root.add(btnLogin).colspan(2).width(320).height(48).padBottom(10).row();
+        root.add(btnRegister).colspan(2).width(320).height(48).row();
+
+        btnTogglePassword.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                passwordVisible = !passwordVisible;
+                txtPassword.setPasswordMode(!passwordVisible);
+                btnTogglePassword.setText(passwordVisible
+                    ? LanguageManager.get("hide_password")
+                    : LanguageManager.get("show_password"));
+            }
+        });
 
         btnLogin.addListener(new ChangeListener() {
             @Override
@@ -102,8 +117,9 @@ public class LoginScreen implements Screen {
         btnRegister.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
+                Screen oldScreen = game.getScreen();
                 game.setScreen(new RegisterScreen(game));
-                dispose();
+                if (oldScreen != null) oldScreen.dispose();
             }
         });
     }
@@ -117,20 +133,20 @@ public class LoginScreen implements Screen {
             return;
         }
 
-        if(authManager.login(username, password)){
+        if (authManager.login(username, password)) {
             Player p = AuthManager.getCurrentPlayer();
-            if(p != null && !p.isActiva()){
+            if (p != null && !p.isActiva()) {
                 mostrarDialogoReactivar(p);
-            }else{
+            } else {
                 game.setScreen(new MenuScreen(game));
                 dispose();
             }
-        }else{
-            lblMessage.setText("Usuario o contrasena incorrectos.");
+        } else {
+            lblMessage.setText(LanguageManager.get("err_pass_wrong"));
         }
     }
-    
-    private void mostrarDialogoReactivar(Player player){
+
+    private void mostrarDialogoReactivar(Player player) {
         lblMessage.setText(LanguageManager.get("account_deactivated"));
         lblMessage.setColor(new Color(0.976f, 0.886f, 0.686f, 1f));
 
@@ -147,30 +163,31 @@ public class LoginScreen implements Screen {
         dialogo.add(btnSi).width(200).height(48).padBottom(8).row();
         dialogo.add(btnNo).width(200).height(48).row();
 
-      btnSi.addListener(new ChangeListener(){
-        @Override
-        public void changed(ChangeEvent event, Actor actor){
-            player.setActiva(true);
-            if(player.getFriends() != null){
-                for(String amigo : player.getFriends()){
-                    Player pAmigo = FileManager.loadPlayer(amigo);
-                    if(pAmigo != null && !pAmigo.getFriends().contains(player.getUsername())){
-                        pAmigo.addFriend(player.getUsername());
-                        FileManager.savePlayer(pAmigo);
+        btnSi.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                player.setActiva(true);
+                if (player.getFriends() != null) {
+                    for (String amigo : player.getFriends()) {
+                        Player pAmigo = FileManager.loadPlayer(amigo);
+                        if (pAmigo != null && !pAmigo.getFriends().contains(player.getUsername())) {
+                            pAmigo.addFriend(player.getUsername());
+                            FileManager.savePlayer(pAmigo);
+                        }
                     }
                 }
+                if (player.getSolicitudesPendientes() != null) {
+                    player.getSolicitudesPendientes().clear();
+                }
+                FileManager.savePlayer(player);
+                game.setScreen(new MenuScreen(game));
+                dispose();
             }
-            if(player.getSolicitudesPendientes() != null){
-                player.getSolicitudesPendientes().clear();
-            }
-            FileManager.savePlayer(player);
-            game.setScreen(new MenuScreen(game));
-            dispose();
-        }
-    });
-        btnNo.addListener(new ChangeListener(){
+        });
+
+        btnNo.addListener(new ChangeListener() {
             @Override
-            public void changed(ChangeEvent event, Actor actor){
+            public void changed(ChangeEvent event, Actor actor) {
                 AuthManager.setCurrentPlayer(null);
                 dialogo.remove();
             }
@@ -196,7 +213,7 @@ public class LoginScreen implements Screen {
 
     @Override
     public void dispose() {
-        stage.dispose();
-        skin.dispose();
+        if (stage != null) stage.dispose();
+        if (skin != null) skin.dispose();
     }
 }
