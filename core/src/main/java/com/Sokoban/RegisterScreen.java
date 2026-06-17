@@ -160,7 +160,7 @@ public class RegisterScreen implements Screen {
             return;
         }
         if(!password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\",.<>/?\\\\|].*")){
-            showMessage("Contrasena no contiene numeros.", false);
+            showMessage("Contrasena no contiene caracteres especiales.", false);
             return;
         }
         if(!password.matches(".*[A-Z].*")){

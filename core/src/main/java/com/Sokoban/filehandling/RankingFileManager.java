@@ -18,7 +18,7 @@ public class RankingFileManager {
 
     private static final String RANKING_FILE = "data/ranking.dat";
     private static final int USERNAME_SIZE = 20;
-    private static final int RECORD_SIZE = USERNAME_SIZE + 4 + 4; // username + nivel + score
+    private static final int RECORD_SIZE = USERNAME_SIZE + 4 + 4; 
 
     public static void guardarOActualizar(String username, int score, int nivel) {
         File file = new File(RANKING_FILE);

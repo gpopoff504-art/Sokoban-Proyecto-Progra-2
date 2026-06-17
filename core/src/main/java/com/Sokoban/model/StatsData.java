@@ -6,8 +6,6 @@ package com.Sokoban.model;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-
 /**
  *
  * @author gpopo
@@ -21,8 +19,6 @@ public class StatsData implements Serializable {
     private long tiempoTotalNiveles;
     private int[] mejoresPuntajesPorNivel;
     private List<String> gameHistory;
-
-    // Stats de retos
     private int retosGanados;
     private int retosPerdidos;
     private int retosEmpatados;
@@ -40,26 +36,53 @@ public class StatsData implements Serializable {
         this.retosEmpatados = 0;
     }
 
+    private void recalcularTotalScore() {
+        int suma = 0;
+        if (mejoresPuntajesPorNivel != null) {
+            for (int puntaje : mejoresPuntajesPorNivel) {
+                suma += puntaje;
+            }
+        }
+        this.totalScore = suma;
+    }
+
     public int getCurrentLevel() { return currentLevel; }
     public void setCurrentLevel(int currentLevel) { this.currentLevel = currentLevel; }
-    public int getTotalScore() { return totalScore; }
-    public void setTotalScore(int totalScore) { this.totalScore = totalScore; }
+
+    public int getTotalScore() {
+       
+        recalcularTotalScore();
+        return totalScore;
+    }
+
+    
+    @Deprecated
+    public void setTotalScore(int totalScore) {
+       
+    }
+
     public long getTotalTimePlayed() { return totalTimePlayed; }
     public void setTotalTimePlayed(long totalTimePlayed) { this.totalTimePlayed = totalTimePlayed; }
+
     public int getNivelesCompletados() { return nivelesCompletados; }
     public void setNivelesCompletados(int n) { this.nivelesCompletados = n; }
+
     public long getTiempoTotalNiveles() { return tiempoTotalNiveles; }
     public void setTiempoTotalNiveles(long t) { this.tiempoTotalNiveles = t; }
+
     public int[] getMejoresPuntajesPorNivel() { return mejoresPuntajesPorNivel; }
+
     public List<String> getGameHistory() { return gameHistory; }
     public void addGameHistory(String entry) { this.gameHistory.add(entry); }
 
     public int getRetosGanados()   { return retosGanados; }
     public int getRetosPerdidos()  { return retosPerdidos; }
     public int getRetosEmpatados() { return retosEmpatados; }
+
     public void setRetosGanados(int n)   { this.retosGanados = n; }
     public void setRetosPerdidos(int n)  { this.retosPerdidos = n; }
     public void setRetosEmpatados(int n) { this.retosEmpatados = n; }
+
     public void addRetosGanados()   { this.retosGanados++; }
     public void addRetosPerdidos()  { this.retosPerdidos++; }
     public void addRetosEmpatados() { this.retosEmpatados++; }
@@ -73,10 +96,11 @@ public class StatsData implements Serializable {
     public boolean actualizarPuntajeNivel(int nivel, int nuevoPuntaje) {
         if (nivel < 1 || nivel > 5) return false;
         if (mejoresPuntajesPorNivel == null) mejoresPuntajesPorNivel = new int[6];
+
         int anterior = mejoresPuntajesPorNivel[nivel];
         if (nuevoPuntaje > anterior) {
             mejoresPuntajesPorNivel[nivel] = nuevoPuntaje;
-            totalScore += (nuevoPuntaje - anterior);
+            recalcularTotalScore(); 
             return true;
         }
         return false;

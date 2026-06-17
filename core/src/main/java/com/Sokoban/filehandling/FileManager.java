@@ -121,7 +121,6 @@ public class FileManager {
         File folder = new File(USERS_ROOT + username + "/");
         if (!folder.exists()) return false;
 
-        // Limpiar datos globales antes de borrar la carpeta
         RankingFileManager.anonimizarUsuario(username);
         ChallengeFileManager.borrarRetosDeUsuario(username);
 

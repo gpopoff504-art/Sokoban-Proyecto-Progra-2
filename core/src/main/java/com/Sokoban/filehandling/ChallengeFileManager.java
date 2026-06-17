@@ -19,10 +19,7 @@ public class ChallengeFileManager {
 
     private static final String FILE = "data/challenges.dat";
     private static final int USER_SIZE  = 20;
-    // retador(20) + retado(20) + nivel(4) + scoreRetador(4) + scoreRetado(4) + estado(4) = 56 bytes
     private static final int REC_SIZE   = USER_SIZE * 2 + 4 * 4;
-
-    // estado: 0=pendiente, 1=aceptado/jugando, 2=completado, 3=rechazado
     public static final int PENDIENTE   = 0;
     public static final int ACEPTADO    = 1;
     public static final int COMPLETADO  = 2;
@@ -56,11 +53,6 @@ public class ChallengeFileManager {
         }
     }
 
-    /**
-     * Borra todos los retos donde el usuario sea retador o retado,
-     * siempre que el estado sea PENDIENTE o ACEPTADO (no completados).
-     * Reescribe el archivo sin esos registros.
-     */
     public static void borrarRetosDeUsuario(String username) {
         File f = new File(FILE);
         if (!f.exists()) return;
@@ -90,7 +82,6 @@ public class ChallengeFileManager {
             return;
         }
 
-        // Reescribir el archivo sin los retos del usuario
         try (FileOutputStream fos = new FileOutputStream(FILE, false)) {
             for (byte[] rec : registrosRestantes) {
                 fos.write(rec);
@@ -206,12 +197,7 @@ public class ChallengeFileManager {
         System.arraycopy(src, 0, b, 0, Math.min(src.length, size));
         raf.write(b);
     }
-
-    /**
-     * Retorna [ganaronA, ganaronB, empates] entre dos usuarios en retos completados.
-     * ganaronA = cuantos retos gano userA contra userB
-     * ganaronB = cuantos retos gano userB contra userA
-     */
+    
     public static int[] getH2H(String userA, String userB) {
         int[] result = {0, 0, 0}; // [ganaA, ganaB, empates]
         File f = new File(FILE);
@@ -230,8 +216,6 @@ public class ChallengeFileManager {
                 boolean match1 = retador.equals(userA) && retado.equals(userB);
                 boolean match2 = retador.equals(userB) && retado.equals(userA);
                 if (!match1 && !match2) continue;
-                // En match1: retador=A, retado=B
-                // En match2: retador=B, retado=A
                 int scoreA = match1 ? sRetador : sRetado;
                 int scoreB = match1 ? sRetado  : sRetador;
                 if (scoreA > scoreB) result[0]++;

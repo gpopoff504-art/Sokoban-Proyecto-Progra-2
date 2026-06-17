@@ -28,13 +28,11 @@ public class Player implements Serializable {
         this.social  = new SocialData();
     }
 
-    // Getters de los 4 objetos internos
     public ProfileData getProfile() { return profile; }
     public StatsData getStats()     { return stats; }
     public PrefsData getPrefs()     { return prefs; }
     public SocialData getSocial()   { return social; }
 
-    // ── Profile ──
     public String getUsername()               { return profile.getUsername(); }
     public void setUsername(String u)         { profile.setUsername(u); }
     public String getPassword()               { return profile.getPassword(); }
@@ -49,7 +47,6 @@ public class Player implements Serializable {
     public boolean isActiva()                 { return profile.isActiva(); }
     public void setActiva(boolean a)          { profile.setActiva(a); }
 
-    // ── Stats ──
     public int getCurrentLevel()              { return stats.getCurrentLevel(); }
     public void setCurrentLevel(int l)        { stats.setCurrentLevel(l); }
     public int getTotalScore()                { return stats.getTotalScore(); }
@@ -68,13 +65,11 @@ public class Player implements Serializable {
         return stats.actualizarPuntajeNivel(nivel, puntaje);
     }
 
-    // ── Prefs ──
     public float getVolume()                  { return prefs.getVolume(); }
     public void setVolume(float v)            { prefs.setVolume(v); }
     public Language getLanguage()             { return prefs.getLanguage(); }
     public void setLanguage(Language l)       { prefs.setLanguage(l); }
 
-    // ── Social ──
     public List<String> getFriends()          { return social.getFriends(); }
     public void addFriend(String u)           { social.addFriend(u); }
     public void removeFriend(String u)        { social.removeFriend(u); }
