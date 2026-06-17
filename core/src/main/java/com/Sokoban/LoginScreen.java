@@ -76,7 +76,7 @@ public class LoginScreen implements Screen {
         txtPassword.setPasswordMode(true);
         txtPassword.setPasswordCharacter('*');
 
-        btnTogglePassword = new TextButton(LanguageManager.get("show_password"), skin);
+        btnTogglePassword = new TextButton(LanguageManager.get("show_password"), skin); 
 
         lblMessage = new Label("", skin);
         lblMessage.setColor(new Color(0.953f, 0.545f, 0.659f, 1f));

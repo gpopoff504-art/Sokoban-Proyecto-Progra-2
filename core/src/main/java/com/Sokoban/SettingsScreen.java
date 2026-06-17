@@ -30,12 +30,12 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
  */
 public class SettingsScreen extends BaseScreen {
 
-    private static final Color BG         = new Color(0.118f, 0.118f, 0.180f, 1f);
-    private static final Color CYAN       = new Color(0.537f, 0.863f, 0.922f, 1f);
-    private static final Color MUTED      = new Color(0.651f, 0.678f, 0.784f, 1f);
-    private static final Color GOLD       = new Color(0.976f, 0.886f, 0.686f, 1f);
-    private static final Color OK_GREEN   = new Color(0.400f, 0.850f, 0.500f, 1f);
-    private static final Color ERR_RED    = new Color(0.950f, 0.380f, 0.380f, 1f);
+    private static final Color BG = new Color(0.118f, 0.118f, 0.180f, 1f);
+    private static final Color CYAN = new Color(0.537f, 0.863f, 0.922f, 1f);
+    private static final Color MUTED = new Color(0.651f, 0.678f, 0.784f, 1f);
+    private static final Color GOLD = new Color(0.976f, 0.886f, 0.686f, 1f);
+    private static final Color OK_GREEN = new Color(0.400f, 0.850f, 0.500f, 1f);
+    private static final Color ERR_RED = new Color(0.950f, 0.380f, 0.380f, 1f);
 
     private final Main game;
     private Stage stage;

@@ -35,6 +35,10 @@ public class RegisterScreen implements Screen {
     private TextField txtPassword;
     private TextField txtConfirm;
     private Label lblMessage;
+    private TextButton btnTogglePassword;
+    private boolean passwordVisible = false;
+    private TextButton btnToggleConfirmPassword;
+    private boolean confirmPasswordVisible = false;
 
     private final AuthManager authManager = new AuthManager();
     
@@ -63,16 +67,19 @@ public class RegisterScreen implements Screen {
         txtPassword = makeField(LanguageManager.get("new_password"));
         txtPassword.setPasswordMode(true);
         txtPassword.setPasswordCharacter('*');
-        txtConfirm  = makeField("Confirmar contraseña");
+        
+        btnTogglePassword = new TextButton(LanguageManager.get("show_password"), skin);
+        
+       txtConfirm  = makeField("Confirmar contraseña");
         txtConfirm.setPasswordMode(true);
         txtConfirm.setPasswordCharacter('*');
 
+        btnToggleConfirmPassword = new TextButton(LanguageManager.get("show_password"), skin);
+
         lblMessage = new Label("", skin);
         lblMessage.setColor(new Color(0.953f, 0.545f, 0.659f, 1f));
-
         TextButton btnRegister = new TextButton("Registrarse", skin);
         TextButton btnBack = new TextButton(LanguageManager.get("back"), skin);
-
         root.pad(40);
         root.add(lblTitle).center().padBottom(24).row();
         root.add(makeLabel(LanguageManager.get("username"), skin)).left().padBottom(4).row();
@@ -80,17 +87,32 @@ public class RegisterScreen implements Screen {
         root.add(makeLabel("Nombre completo", skin)).left().padBottom(4).row();
         root.add(txtFullName).width(320).padBottom(12).row();
         root.add(makeLabel(LanguageManager.get("password"), skin)).left().padBottom(4).row();
-        root.add(txtPassword).width(320).padBottom(12).row();
+        root.add(txtPassword).width(320).padBottom(8);
+        root.add(btnTogglePassword).width(92).height(36).padLeft(8).padBottom(8).row();
+
         root.add(makeLabel("Confirmar contraseña", skin)).left().padBottom(4).row();
-        root.add(txtConfirm).width(320).padBottom(8).row();
-        root.add(lblMessage).center().padBottom(8).row();
-        root.add(btnRegister).width(320).height(48).padBottom(10).row();
-        root.add(btnBack).width(320).height(48).row();
+        root.add(txtConfirm).width(320).padBottom(8);
+        root.add(btnToggleConfirmPassword).width(92).height(36).padLeft(8).padBottom(8).row();
+
+        root.add(lblMessage).colspan(2).center().padBottom(8).row();
+        root.add(btnRegister).colspan(2).width(320).height(48).padBottom(10).row();
+        root.add(btnBack).colspan(2).width(320).height(48).row();
 
         btnRegister.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 handleRegister();
+            }
+        });
+        
+        btnTogglePassword.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+                passwordVisible = !passwordVisible;
+                txtPassword.setPasswordMode(!passwordVisible);
+                btnTogglePassword.setText(passwordVisible
+                        ? LanguageManager.get("hide_password")
+                        : LanguageManager.get("show_password"));
             }
         });
 
@@ -102,6 +124,17 @@ public class RegisterScreen implements Screen {
                 if (oldScreen != null) oldScreen.dispose();
             }
         });
+        
+            btnToggleConfirmPassword.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+                confirmPasswordVisible = !confirmPasswordVisible;                
+                txtConfirm.setPasswordMode(!confirmPasswordVisible);                
+                btnToggleConfirmPassword.setText(confirmPasswordVisible              
+                    ? LanguageManager.get("hide_password")
+                    : LanguageManager.get("show_password"));
+            }
+        });
     }
 
     private void handleRegister() {
@@ -110,7 +143,7 @@ public class RegisterScreen implements Screen {
         String password = txtPassword.getText();
         String confirm  = txtConfirm.getText();
 
-        if (username.isEmpty() || fullName.isEmpty() || password.isEmpty()) {
+        if (username.isEmpty() || fullName.isEmpty() || password.isEmpty()){
             showMessage("Completa todos los campos.", false);
             return;
         }
@@ -122,7 +155,18 @@ public class RegisterScreen implements Screen {
             showMessage("La contraseña debe tener al menos 6 caracteres.", false);
             return;
         }
-
+        if(!password.matches(".*[0-9].*")){
+            showMessage("Contrasena no contiene numeros.", false);
+            return;
+        }
+        if(!password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\",.<>/?\\\\|].*")){
+            showMessage("Contrasena no contiene numeros.", false);
+            return;
+        }
+        if(!password.matches(".*[A-Z].*")){
+            showMessage("Contrasena no contiene mayusculas.", false);
+            return;
+        }
         if (authManager.register(username, password, fullName, "aP")) {
             Screen oldScreen = game.getScreen();
             game.setScreen(new AvatarScreen(game, true));

@@ -58,7 +58,14 @@ public class RankingScreen extends BaseScreen {
         Label lblTitle = new Label(LanguageManager.get("ranking"), skin);
         lblTitle.setColor(CYAN);
         lblTitle.setFontScale(2f);
-        root.add(lblTitle).center().padBottom(24).colspan(3).row();
+        root.add(lblTitle).center().padBottom(12).colspan(3).row();
+
+        Label lblAviso = new Label(LanguageManager.get("ranking_aviso"), skin);
+        lblAviso.setColor(MUTED);
+        lblAviso.setFontScale(0.9f);
+        lblAviso.setWrap(true);
+        lblAviso.setAlignment(com.badlogic.gdx.utils.Align.center);
+        root.add(lblAviso).center().width(420).padBottom(20).colspan(3).row();
 
         Label lblPos   = makeHeader("#");
         Label lblUser  = makeHeader(LanguageManager.get("username"));

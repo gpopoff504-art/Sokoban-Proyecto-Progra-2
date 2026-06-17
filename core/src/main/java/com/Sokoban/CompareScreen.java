@@ -169,8 +169,8 @@ public class CompareScreen extends BaseScreen {
         addSep(content);
 
         TextButton btnBack = new TextButton(LanguageManager.get("back"), skin);
-        content.add(btnBack).colspan(3).width(280).height(48).padTop(12).row();
-        btnBack.addListener(new ChangeListener() {
+            content.add(btnBack).colspan(3).width(280).height(48).padTop(-27).row();
+            btnBack.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 game.setScreen(new FriendsScreen(game));

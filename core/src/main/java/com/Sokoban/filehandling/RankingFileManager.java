@@ -52,10 +52,6 @@ public class RankingFileManager {
         }
     }
 
-    /**
-     * Reemplaza el username del usuario borrado por "Usuario eliminado"
-     * en todas sus entradas del ranking.
-     */
     public static void anonimizarUsuario(String username) {
         File file = new File(RANKING_FILE);
         if (!file.exists()) return;
