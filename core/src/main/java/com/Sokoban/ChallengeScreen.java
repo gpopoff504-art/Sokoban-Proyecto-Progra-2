@@ -123,8 +123,7 @@ public class ChallengeScreen extends BaseScreen {
         scrollRecibidos.setScrollingDisabled(true, false);
         root.add(scrollRecibidos).width(500).height(180).padBottom(20).row();
 
-        // Retos enviados
-        Label lblEnviados = new Label(LanguageManager.get("challenge") + "s enviados", skin);
+        Label lblEnviados = new Label(LanguageManager.get("challenges_sent"), skin);
         lblEnviados.setColor(MUTED);
         lblEnviados.setFontScale(1.1f);
         root.add(lblEnviados).left().padBottom(8).row();
