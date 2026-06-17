@@ -70,6 +70,7 @@ public class MenuScreen extends BaseScreen {
         TextButton btnPlay = new TextButton(LanguageManager.get("play"), skin); 
         TextButton btnProfile  = new TextButton(LanguageManager.get("profile"), skin);
         TextButton btnFriends = new TextButton(LanguageManager.get("friends"), skin);
+        TextButton btnChallenges = new TextButton(LanguageManager.get("challenges"), skin);
         TextButton btnRanking = new TextButton (LanguageManager.get("ranking"), skin);
         TextButton btnSettings = new TextButton(LanguageManager.get("settings"), skin);
         TextButton btnLogout   = new TextButton(LanguageManager.get("logout"), skin);
@@ -81,6 +82,7 @@ public class MenuScreen extends BaseScreen {
         root.add(btnPlay).width(280).height(52).padBottom(12).row();
         root.add(btnProfile).width(280).height(52).padBottom(12).row();
         root.add(btnFriends).width(280).height(52).padBottom(12).row();
+        root.add(btnChallenges).width(280).height(52).padBottom(12).row();
         root.add(btnRanking).width(280).height(52).padBottom(12).row();
         root.add(btnSettings).width(280).height(52).padBottom(12).row();
         root.add(btnLogout).width(280).height(52).row();
@@ -107,6 +109,14 @@ public class MenuScreen extends BaseScreen {
             @Override
             public void changed(ChangeEvent event, Actor actor){
                 game.setScreen(new FriendsScreen(game));
+                dispose();
+            }
+        });
+        
+        btnChallenges.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                game.setScreen(new ChallengeScreen(game));
                 dispose();
             }
         });

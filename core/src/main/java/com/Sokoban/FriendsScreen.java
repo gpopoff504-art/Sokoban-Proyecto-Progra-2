@@ -147,19 +147,44 @@ public class FriendsScreen extends BaseScreen{
             for(String amigo : player.getFriends()){
                 Player pAmigo = FileManager.loadPlayer(amigo);
                 if(pAmigo != null && pAmigo.isActiva()){
-                    String info = amigo + "  |  " + LanguageManager.get("level") + ": " + pAmigo.getCurrentLevel() + "  |  " + pAmigo.getTotalScore() + " pts";
+                    String info = amigo + "  |  " + LanguageManager.get("level") + ": "
+                        + pAmigo.getCurrentLevel() + "  |  " + pAmigo.getTotalScore() + " pts";
                     Label lblAmigo = new Label(info, skin);
                     lblAmigo.setColor(Color.WHITE);
+
+                    TextButton btnComparar = new TextButton(LanguageManager.get("compare"), skin);
+                    TextButton btnRetar    = new TextButton(LanguageManager.get("challenge"), skin);
+                    btnRetar.setColor(new Color(0.537f, 0.863f, 0.922f, 1f));
                     TextButton btnEliminar = new TextButton(LanguageManager.get("remove_friend"), skin);
                     btnEliminar.setColor(new Color(0.950f, 0.380f, 0.380f, 1f));
-                    btnEliminar.addListener(new ChangeListener(){
+
+                    btnComparar.addListener(new ChangeListener() {
                         @Override
-                        public void changed(ChangeEvent event, Actor actor){
+                        public void changed(ChangeEvent event, Actor actor) {
+                            game.setScreen(new CompareScreen(game, amigo));
+                            dispose();
+                        }
+                    });
+
+                    btnRetar.addListener(new ChangeListener() {
+                        @Override
+                        public void changed(ChangeEvent event, Actor actor) {
+                            game.setScreen(new SendChallengeScreen(game, amigo));
+                            dispose();
+                        }
+                    });
+
+                    btnEliminar.addListener(new ChangeListener() {
+                        @Override
+                        public void changed(ChangeEvent event, Actor actor) {
                             eliminarAmigo(player, amigo);
                         }
                     });
-                    tblAmigos.add(lblAmigo).left().width(300).padBottom(8);
-                    tblAmigos.add(btnEliminar).width(100).height(36).padBottom(8).row();
+
+                    tblAmigos.add(lblAmigo).left().width(200).padBottom(8);
+                    tblAmigos.add(btnComparar).width(80).height(36).padRight(4).padBottom(8);
+                    tblAmigos.add(btnRetar).width(70).height(36).padRight(4).padBottom(8);
+                    tblAmigos.add(btnEliminar).width(80).height(36).padBottom(8).row();
                 }
             }
         }

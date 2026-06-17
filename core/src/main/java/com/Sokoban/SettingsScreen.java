@@ -189,6 +189,7 @@ public class SettingsScreen extends BaseScreen {
                 if (p != null) {
                     p.setVolume(v);
                     FileManager.savePlayer(p);
+                    com.Sokoban.model.MusicManager.getInstance().setVolume(v);
                 }
             }
         });
