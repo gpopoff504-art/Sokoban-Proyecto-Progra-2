@@ -8,12 +8,16 @@ public class AuthManager implements Authenticable {
 
     @Override
     public boolean register(String username, String password, String fullName, String avatar){
-        if (username == null || username.trim().isEmpty()) return false;
-        if (!validatePassword(password)) return false;
-        if (FileManager.playerExists(username)) return false;
+        if(username == null || username.trim().isEmpty()) return false;
+        if(!validatePassword(password)) return false;
+        if(FileManager.playerExists(username)) return false;
         Player newPlayer = new Player(username, password, fullName);
         newPlayer.setAvatarPath(avatar);
-        return FileManager.savePlayer(newPlayer);
+        boolean guardado = FileManager.savePlayer(newPlayer);
+        if(guardado){
+            currentPlayer = newPlayer;
+        }
+        return guardado;
     }
 
     @Override
@@ -60,6 +64,10 @@ public class AuthManager implements Authenticable {
     @Override
     public boolean validatePassword(String password) {
         return password != null && password.length() >= 6;
+    }
+    
+    public static void setCurrentPlayer(Player player){
+        currentPlayer = player;
     }
 
     public static Player getCurrentPlayer() {

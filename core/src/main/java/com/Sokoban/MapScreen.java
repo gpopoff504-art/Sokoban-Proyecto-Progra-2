@@ -5,7 +5,6 @@
 package com.Sokoban;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -17,6 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.Sokoban.model.AuthManager;
+import com.Sokoban.model.LanguageManager;
 import com.Sokoban.model.Player;
 
 /**
@@ -51,11 +51,11 @@ public class MapScreen extends BaseScreen {
         root.setBackground(skin.newDrawable("white", new Color(0.118f, 0.118f, 0.180f, 1f)));
         stage.addActor(root);
 
-        Label lblTitle = new Label("SELECCIONA NIVEL", skin);
+        Label lblTitle = new Label(LanguageManager.get("select_level"), skin);
         lblTitle.setColor(new Color(0.537f, 0.863f, 0.922f, 1f));
         lblTitle.setFontScale(1.6f);
 
-        Label lblInfo = new Label("Desbloqueado hasta nivel " + unlockedLevel, skin);
+        Label lblInfo = new Label(LanguageManager.get("unlocked") + " " + unlockedLevel, skin);
         lblInfo.setColor(new Color(0.651f, 0.678f, 0.784f, 1f));
 
         root.add(lblTitle).colspan(3).center().padTop(30).padBottom(8).row();
@@ -89,7 +89,7 @@ public class MapScreen extends BaseScreen {
             if (i % 3 == 0) root.row();
         }
 
-        TextButton btnBack = new TextButton("Volver al Menu", skin);
+        TextButton btnBack = new TextButton(LanguageManager.get("back_menu"), skin);
         root.row();
         root.add(btnBack).colspan(3).width(280).height(48).padTop(24).padBottom(20);
 

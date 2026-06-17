@@ -22,6 +22,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.Sokoban.filehandling.FileManager;
 import com.Sokoban.model.AuthManager;
+import com.Sokoban.model.LanguageManager;
 import com.Sokoban.model.Player;
 /**
  *
@@ -69,7 +70,7 @@ public class AvatarScreen implements Screen{
         root.setBackground(skin.newDrawable("white", new Color(0.118f, 0.118f, 0.180f, 1f)));
         stage.addActor(root);
 
-        Label lblTitle = new Label("SELECCIONAR AVATAR", skin);
+        Label lblTitle = new Label(LanguageManager.get("select_avatar"), skin);
         lblTitle.setColor(new Color(0.537f, 0.863f, 0.922f, 1f));
         lblTitle.setFontScale(1.6f);
 
@@ -79,15 +80,23 @@ public class AvatarScreen implements Screen{
         for(int i = 0; i < AVATARES.length; i++){
             final String nombre = AVATARES[i];
             final int idx = i;
-            TextButton btn = new TextButton(nombre, skin);
-            btn.addListener(new ChangeListener(){
+            final Texture tex = texAvatares[i];
+
+            com.badlogic.gdx.scenes.scene2d.ui.Image img = new com.badlogic.gdx.scenes.scene2d.ui.Image(tex);
+            img.setSize(64, 64);
+
+            Table cell = new Table();
+            cell.add(img).size(64, 64).row();
+
+            cell.addListener(new com.badlogic.gdx.scenes.scene2d.utils.ClickListener(){
                 @Override
-                public void changed(ChangeEvent event, Actor actor){
+                public void clicked(com.badlogic.gdx.scenes.scene2d.InputEvent event, float x, float y){
                     avatarSeleccionado = nombre;
                     actualizarTexSeleccionado();
                 }
             });
-            grid.add(btn).width(AV_SIZE).height(AV_SIZE).pad(10);
+
+            grid.add(cell).pad(10);
             if((i + 1) % COLS == 0) grid.row();
         }
 
@@ -95,32 +104,15 @@ public class AvatarScreen implements Screen{
         scroll.setScrollingDisabled(true, false);
         scroll.setFlickScroll(true);
 
-        TextButton btnConfirmar = new TextButton("Confirmar", skin);
-        TextButton btnVolver = new TextButton("Volver", skin);
+        TextButton btnConfirmar = new TextButton(LanguageManager.get("confirm_btn"), skin);
+        TextButton btnVolver = new TextButton(LanguageManager.get("back"), skin);
+        TextButton btnQuitar = new TextButton(LanguageManager.get("remove_avatar"), skin);
 
         root.add(lblTitle).colspan(2).center().padTop(20).padBottom(16).row();
         root.add(scroll).colspan(2).width(500).height(400).row();
-        TextButton btnQuitar = new TextButton("Quitar Avatar", skin);
         root.add(btnConfirmar).width(200).height(48).pad(10);
         root.add(btnVolver).width(200).height(48).pad(10).row();
         root.add(btnQuitar).colspan(2).width(200).height(48).pad(10).row();
-
-        btnQuitar.addListener(new ChangeListener(){
-            @Override
-            public void changed(ChangeEvent event, Actor actor){
-                Player player = AuthManager.getCurrentPlayer();
-                if(player != null){
-                    player.setAvatarPath("aP");
-                    FileManager.savePlayer(player);
-                }
-                if(desdeRegistro){
-                    game.setScreen(new LoginScreen(game));
-                }else{
-                    game.setScreen(new ProfileScreen(game));
-                }
-                dispose();
-            }
-        });
 
         btnConfirmar.addListener(new ChangeListener(){
             @Override
@@ -129,8 +121,14 @@ public class AvatarScreen implements Screen{
                 if(player != null){
                     player.setAvatarPath(avatarSeleccionado);
                     FileManager.savePlayer(player);
+                    if(desdeRegistro){
+                        game.setScreen(new MenuScreen(game));
+                    }else{
+                        game.setScreen(new ProfileScreen(game));
+                    }
+                }else{
+                    game.setScreen(new LoginScreen(game));
                 }
-                game.setScreen(new ProfileScreen(game));
                 dispose();
             }
         });
@@ -143,6 +141,19 @@ public class AvatarScreen implements Screen{
                 }else{
                     game.setScreen(new ProfileScreen(game));
                 }
+                dispose();
+            }
+        });
+
+        btnQuitar.addListener(new ChangeListener(){
+            @Override
+            public void changed(ChangeEvent event, Actor actor){
+                Player player = AuthManager.getCurrentPlayer();
+                if(player != null){
+                    player.setAvatarPath("aP");
+                    FileManager.savePlayer(player);
+                }
+                game.setScreen(new ProfileScreen(game));
                 dispose();
             }
         });

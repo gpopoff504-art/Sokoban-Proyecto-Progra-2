@@ -4,6 +4,7 @@
  */
 package com.Sokoban;
 
+import com.Sokoban.filehandling.FileManager;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
@@ -18,6 +19,8 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.Sokoban.model.AuthManager;
+import com.Sokoban.model.LanguageManager;
+import com.Sokoban.model.Player;
 
 /**
  *
@@ -114,12 +117,64 @@ public class LoginScreen implements Screen {
             return;
         }
 
-        if (authManager.login(username, password)) {
-            game.setScreen(new MenuScreen(game));
-            dispose();
-        } else {
+        if(authManager.login(username, password)){
+            Player p = AuthManager.getCurrentPlayer();
+            if(p != null && !p.isActiva()){
+                mostrarDialogoReactivar(p);
+            }else{
+                game.setScreen(new MenuScreen(game));
+                dispose();
+            }
+        }else{
             lblMessage.setText("Usuario o contrasena incorrectos.");
         }
+    }
+    
+    private void mostrarDialogoReactivar(Player player){
+        lblMessage.setText(LanguageManager.get("account_deactivated"));
+        lblMessage.setColor(new Color(0.976f, 0.886f, 0.686f, 1f));
+
+        TextButton btnSi = new TextButton(LanguageManager.get("reactivate"), skin);
+        TextButton btnNo = new TextButton(LanguageManager.get("cancel"), skin);
+
+        Table dialogo = new Table();
+        dialogo.setFillParent(true);
+        dialogo.setBackground(skin.newDrawable("white", new Color(0f, 0f, 0f, 0.7f)));
+        stage.addActor(dialogo);
+
+        dialogo.center();
+        dialogo.add(new Label(LanguageManager.get("account_deactivated"), skin)).padBottom(16).row();
+        dialogo.add(btnSi).width(200).height(48).padBottom(8).row();
+        dialogo.add(btnNo).width(200).height(48).row();
+
+      btnSi.addListener(new ChangeListener(){
+        @Override
+        public void changed(ChangeEvent event, Actor actor){
+            player.setActiva(true);
+            if(player.getFriends() != null){
+                for(String amigo : player.getFriends()){
+                    Player pAmigo = FileManager.loadPlayer(amigo);
+                    if(pAmigo != null && !pAmigo.getFriends().contains(player.getUsername())){
+                        pAmigo.addFriend(player.getUsername());
+                        FileManager.savePlayer(pAmigo);
+                    }
+                }
+            }
+            if(player.getSolicitudesPendientes() != null){
+                player.getSolicitudesPendientes().clear();
+            }
+            FileManager.savePlayer(player);
+            game.setScreen(new MenuScreen(game));
+            dispose();
+        }
+    });
+        btnNo.addListener(new ChangeListener(){
+            @Override
+            public void changed(ChangeEvent event, Actor actor){
+                AuthManager.setCurrentPlayer(null);
+                dialogo.remove();
+            }
+        });
     }
 
     @Override

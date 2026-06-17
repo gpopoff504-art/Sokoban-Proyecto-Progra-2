@@ -4,6 +4,7 @@
  */
 package com.Sokoban;
 
+import com.Sokoban.filehandling.FileManager;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
@@ -55,20 +56,21 @@ public class ProfileScreen extends BaseScreen {
         root.setBackground(skin.newDrawable("white", new Color(0.118f, 0.118f, 0.180f, 1f)));
         stage.addActor(root);
 
-        Label lblTitle = new Label(LanguageManager.get(LanguageManager.KEY_PROFILE), skin);
+        Label lblTitle = new Label(LanguageManager.get("my_profile"), skin);
         lblTitle.setColor(new Color(0.537f, 0.863f, 0.922f, 1f));
         lblTitle.setFontScale(1.8f);
         root.center().pad(40);   
         root.add(lblTitle).center().padBottom(28).colspan(2).row();
 
         if (player != null) {
-            addRow(root, skin, LanguageManager.get(LanguageManager.KEY_USERNAME), player.getUsername());
-            addRow(root, skin, "Nombre", player.getFullName());
-            addRow(root, skin, LanguageManager.get(LanguageManager.KEY_LEVEL), String.valueOf(player.getCurrentLevel()));
-            addRow(root, skin, "Puntuación", String.valueOf(player.getTotalScore()));
-            addRow(root, skin, "Registrado", player.getRegistrationDate().toLocalDate().toString());
-            addRow(root, skin, "Última sesión", player.getLastSession().toLocalDate().toString());
-            
+            addRow(root, skin, LanguageManager.get("username"), player.getUsername());
+            addRow(root, skin, LanguageManager.get("full_name"), player.getFullName());
+            addRow(root, skin, LanguageManager.get("level"), String.valueOf(player.getCurrentLevel()));
+            addRow(root, skin, LanguageManager.get("score"), String.valueOf(player.getTotalScore()));
+            addRow(root, skin, LanguageManager.get("registered"), player.getRegistrationDate().toLocalDate().toString());
+            addRow(root, skin, LanguageManager.get("last_session"), player.getLastSession().toLocalDate().toString());
+            addRow(root, skin, LanguageManager.get("completed_levels"), String.valueOf(player.getNivelesCompletados()));
+            addRow(root, skin, LanguageManager.get("average_time_per_level"), (int)player.getTiempoPromedioPorNivel() + "s");
             long tiempo = player.getTotalTimePlayed();
             long horas = tiempo / 3600;
             long minutos = (tiempo % 3600) / 60;
@@ -81,10 +83,9 @@ public class ProfileScreen extends BaseScreen {
             } else {
                 tiempoFormato = segundos + "s";
             }
-            addRow(root, skin, "Tiempo jugado", tiempoFormato);
-            addRow(root, skin, "Partidas jugadas", String.valueOf(player.getGameHistory().size()));
+            addRow(root, skin, LanguageManager.get("total_time"), tiempoFormato);
 
-            TextButton btnAvatar = new TextButton("Cambiar Avatar", skin);
+            TextButton btnAvatar = new TextButton(LanguageManager.get("change_avatar"), skin);
             root.add(btnAvatar).colspan(2).center().width(280).height(48).padTop(16).row();
 
             btnAvatar.addListener(new ChangeListener() {
@@ -95,9 +96,23 @@ public class ProfileScreen extends BaseScreen {
                     if (oldScreen != null) oldScreen.dispose();
                 }
             });
+            TextButton btnDesactivar = new TextButton(LanguageManager.get("deactivate"), skin);
+            btnDesactivar.setColor(new Color(0.950f, 0.380f, 0.380f, 1f));
+            root.add(btnDesactivar).colspan(2).center().width(280).height(48).padTop(8).row();
+
+            btnDesactivar.addListener(new ChangeListener(){
+                @Override
+                public void changed(ChangeEvent event, Actor actor){
+                    player.setActiva(false);
+                    FileManager.savePlayer(player);
+                    AuthManager.setCurrentPlayer(null);
+                    game.setScreen(new LoginScreen(game));
+                    dispose();
+                }
+            });
         }
 
-        TextButton btnBack = new TextButton(LanguageManager.get(LanguageManager.KEY_BACK), skin);
+        TextButton btnBack = new TextButton(LanguageManager.get("back"), skin);
         root.add(btnBack).colspan(2).center().width(280).height(48).padTop(28).row();
         btnBack.addListener(new ChangeListener() {
             @Override

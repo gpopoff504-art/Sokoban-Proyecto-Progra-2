@@ -61,16 +61,17 @@ public class MenuScreen extends BaseScreen {
         lblTitle.setColor(new Color(0.537f, 0.863f, 0.922f, 1f));
         lblTitle.setFontScale(2.4f);
 
-        Label lblWelcome = new Label(LanguageManager.get(LanguageManager.KEY_WELCOME) + " " + name + "!", skin);
+        Label lblWelcome = new Label(LanguageManager.get("welcome") + " " + name + "!", skin);
         lblWelcome.setColor(new Color(0.651f, 0.678f, 0.784f, 1f));
 
-        Label lblStats = new Label(LanguageManager.get(LanguageManager.KEY_LEVEL) + ": " + level + "   |   " + score + " pts", skin);
+        Label lblStats = new Label(LanguageManager.get("level") + ": " + level + "   |   " + score + " pts", skin);
         lblStats.setColor(new Color(0.976f, 0.886f, 0.686f, 1f));
 
-        TextButton btnPlay     = new TextButton(LanguageManager.get(LanguageManager.KEY_PLAY), skin);
-        TextButton btnProfile  = new TextButton(LanguageManager.get(LanguageManager.KEY_PROFILE), skin);
-        TextButton btnSettings = new TextButton(LanguageManager.get(LanguageManager.KEY_SETTINGS), skin);
-        TextButton btnLogout   = new TextButton(LanguageManager.get(LanguageManager.KEY_LOGOUT), skin);
+        TextButton btnPlay = new TextButton(LanguageManager.get("play"), skin); 
+        TextButton btnProfile  = new TextButton(LanguageManager.get("profile"), skin);
+        TextButton btnFriends = new TextButton(LanguageManager.get("friends"), skin);
+        TextButton btnSettings = new TextButton(LanguageManager.get("settings"), skin);
+        TextButton btnLogout   = new TextButton(LanguageManager.get("logout"), skin);
 
         root.pad(40);
         root.add(lblTitle).center().padBottom(8).row();
@@ -78,6 +79,7 @@ public class MenuScreen extends BaseScreen {
         root.add(lblStats).center().padBottom(36).row();
         root.add(btnPlay).width(280).height(52).padBottom(12).row();
         root.add(btnProfile).width(280).height(52).padBottom(12).row();
+        root.add(btnFriends).width(280).height(52).padBottom(12).row();
         root.add(btnSettings).width(280).height(52).padBottom(12).row();
         root.add(btnLogout).width(280).height(52).row();
 
@@ -96,6 +98,14 @@ public class MenuScreen extends BaseScreen {
                 Screen oldScreen = game.getScreen();
                 game.setScreen(new ProfileScreen(game));
                 if (oldScreen != null) oldScreen.dispose();
+            }
+        });
+
+        btnFriends.addListener(new ChangeListener(){
+            @Override
+            public void changed(ChangeEvent event, Actor actor){
+                game.setScreen(new FriendsScreen(game));
+                dispose();
             }
         });
 

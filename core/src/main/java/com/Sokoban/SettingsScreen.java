@@ -90,7 +90,7 @@ public class SettingsScreen extends BaseScreen {
         root.setBackground(skin.newDrawable("white", BG));
         stage.addActor(root);
 
-        lblTitle = new Label(LanguageManager.get(LanguageManager.KEY_SETTINGS), skin);
+        lblTitle = new Label(LanguageManager.get("settings"), skin);
         lblTitle.setColor(CYAN);
         lblTitle.setFontScale(2.0f);
         root.add(lblTitle).center().padBottom(24).colspan(2).row();
@@ -99,14 +99,14 @@ public class SettingsScreen extends BaseScreen {
         lblFeedback.setColor(OK_GREEN);
         root.add(lblFeedback).center().padBottom(16).colspan(2).row();
 
-        lblUsernameSection = sectionLabel(LanguageManager.get(LanguageManager.KEY_USERNAME));
+        lblUsernameSection = sectionLabel(LanguageManager.get("username"));
         root.add(lblUsernameSection).left().padBottom(4).colspan(2).row();
 
         tfNewUsername = new TextField("", skin);
-        tfNewUsername.setMessageText(LanguageManager.get(LanguageManager.KEY_NEW_USERNAME));
+        tfNewUsername.setMessageText(LanguageManager.get("new_username"));
         root.add(tfNewUsername).width(280).height(40).padBottom(8);
 
-        btnChangeUsername = new TextButton(LanguageManager.get(LanguageManager.KEY_CHANGE), skin);
+        btnChangeUsername = new TextButton(LanguageManager.get("change"), skin);
         root.add(btnChangeUsername).width(120).height(40).padLeft(8).padBottom(8).row();
 
         btnChangeUsername.addListener(new ChangeListener() {
@@ -116,22 +116,22 @@ public class SettingsScreen extends BaseScreen {
             }
         });
 
-        lblPasswordSection = sectionLabel(LanguageManager.get(LanguageManager.KEY_PASSWORD));
+        lblPasswordSection = sectionLabel(LanguageManager.get("password"));
         root.add(lblPasswordSection).left().padTop(16).padBottom(4).colspan(2).row();
 
         tfOldPassword = new TextField("", skin);
         tfOldPassword.setPasswordMode(true);
         tfOldPassword.setPasswordCharacter('*');
-        tfOldPassword.setMessageText(LanguageManager.get(LanguageManager.KEY_OLD_PASSWORD));
+        tfOldPassword.setMessageText(LanguageManager.get("old_password"));
         root.add(tfOldPassword).width(280).height(40).padBottom(6).colspan(2).row();
 
         tfNewPassword = new TextField("", skin);
         tfNewPassword.setPasswordMode(true);
         tfNewPassword.setPasswordCharacter('*');
-        tfNewPassword.setMessageText(LanguageManager.get(LanguageManager.KEY_NEW_PASSWORD));
+        tfNewPassword.setMessageText(LanguageManager.get("new_password"));
         root.add(tfNewPassword).width(280).height(40).padBottom(8);
 
-        btnChangePassword = new TextButton(LanguageManager.get(LanguageManager.KEY_CHANGE), skin);
+        btnChangePassword = new TextButton(LanguageManager.get("change"), skin);
         root.add(btnChangePassword).width(120).height(40).padLeft(8).padBottom(8).row();
 
         btnChangePassword.addListener(new ChangeListener() {
@@ -141,11 +141,11 @@ public class SettingsScreen extends BaseScreen {
             }
         });
 
-        lblLanguageSection = sectionLabel(LanguageManager.get(LanguageManager.KEY_LANGUAGE));
+        lblLanguageSection = sectionLabel(LanguageManager.get("language"));
         root.add(lblLanguageSection).left().padTop(16).padBottom(8).colspan(2).row();
 
         Table langRow = new Table();
-        btnSpanish = new TextButton("Español", skin);
+        btnSpanish = new TextButton("Espanol", skin);
         btnEnglish = new TextButton("English", skin);
         highlightLanguageButton(player.getLanguage());
         langRow.add(btnSpanish).width(134).height(42).padRight(12);
@@ -165,11 +165,11 @@ public class SettingsScreen extends BaseScreen {
             }
         });
 
-        lblVolumeSection = sectionLabel(LanguageManager.get(LanguageManager.KEY_VOLUME));
+        lblVolumeSection = sectionLabel(LanguageManager.get("volume"));
         root.add(lblVolumeSection).left().padTop(16).padBottom(4).colspan(2).row();
 
         int savedPct = Math.round(player.getVolume() * 100f);
-        lblVolumePct = new Label(LanguageManager.get(LanguageManager.KEY_VOLUME_LABEL) + " " + savedPct + "%", skin);
+        lblVolumePct = new Label(LanguageManager.get("volume_label") + " " + savedPct + "%", skin);
         lblVolumePct.setColor(GOLD);
         root.add(lblVolumePct).left().colspan(2).padBottom(4).row();
 
@@ -183,7 +183,7 @@ public class SettingsScreen extends BaseScreen {
                 float v = volumeSlider.getValue();
                 int pct = Math.round(v * 100f);
                 lblVolumePct.setText(
-                    LanguageManager.get(LanguageManager.KEY_VOLUME_LABEL) + " " + pct + "%"
+                    LanguageManager.get("volume_label") + " " + pct + "%"
                 );
                 Player p = AuthManager.getCurrentPlayer();
                 if (p != null) {
@@ -193,7 +193,7 @@ public class SettingsScreen extends BaseScreen {
             }
         });
 
-        btnBack = new TextButton(LanguageManager.get(LanguageManager.KEY_BACK), skin);
+        btnBack = new TextButton(LanguageManager.get("back"), skin);
         root.add(btnBack).width(280).height(48).colspan(2).padTop(8).row();
 
         btnBack.addListener(new ChangeListener() {
@@ -213,15 +213,15 @@ public class SettingsScreen extends BaseScreen {
         String newUsername = tfNewUsername.getText().trim();
 
         if (newUsername.isEmpty()) {
-            showFeedback(LanguageManager.get(LanguageManager.KEY_ERR_EMPTY), false);
+            showFeedback(LanguageManager.get("err_empty"), false);
             return;
         }
         if (newUsername.equals(player.getUsername())) {
-            showFeedback(LanguageManager.get(LanguageManager.KEY_USERNAME_OK), true);
+            showFeedback(LanguageManager.get("username_ok"), true);
             return;
         }
         if (FileManager.playerExists(newUsername)) {
-            showFeedback(LanguageManager.get(LanguageManager.KEY_ERR_TAKEN), false);
+            showFeedback(LanguageManager.get("err_taken"), false);
             return;
         }
 
@@ -229,7 +229,7 @@ public class SettingsScreen extends BaseScreen {
 
         boolean folderOk = FileManager.renameUserFolder(oldUsername, newUsername);
         if (!folderOk) {
-            showFeedback(LanguageManager.get(LanguageManager.KEY_ERROR), false);
+            showFeedback(LanguageManager.get("error"), false);
             return;
         }
 
@@ -237,7 +237,7 @@ public class SettingsScreen extends BaseScreen {
         FileManager.savePlayer(player);
 
         tfNewUsername.setText("");
-        showFeedback(LanguageManager.get(LanguageManager.KEY_USERNAME_OK), true);
+        showFeedback(LanguageManager.get("username_ok"), true);
     }
 
     private void handlePasswordChange() {
@@ -248,15 +248,15 @@ public class SettingsScreen extends BaseScreen {
         String newPass = tfNewPassword.getText();
 
         if (oldPass.isEmpty() || newPass.isEmpty()) {
-            showFeedback(LanguageManager.get(LanguageManager.KEY_ERR_EMPTY), false);
+            showFeedback(LanguageManager.get("err_empty"), false);
             return;
         }
         if (!player.getPassword().equals(oldPass)) {
-            showFeedback(LanguageManager.get(LanguageManager.KEY_ERR_PASS_WRONG), false);
+            showFeedback(LanguageManager.get("err_pass_wrong"), false);
             return;
         }
         if (newPass.length() < 6) {
-            showFeedback(LanguageManager.get(LanguageManager.KEY_ERR_PASS_SHORT), false);
+            showFeedback(LanguageManager.get("err_pass_short"), false);
             return;
         }
 
@@ -265,19 +265,17 @@ public class SettingsScreen extends BaseScreen {
 
         tfOldPassword.setText("");
         tfNewPassword.setText("");
-        showFeedback(LanguageManager.get(LanguageManager.KEY_PASSWORD_OK), true);
+        showFeedback(LanguageManager.get("password_ok"), true);
     }
 
-    private void handleLanguageChange(Language lang) {
+    private void handleLanguageChange(Language lang){
         Player player = AuthManager.getCurrentPlayer();
-        if (player == null) return;
-
+        if(player == null) return;
         player.setLanguage(lang);
         FileManager.savePlayer(player);
         LanguageManager.setLanguage(lang);
-
-        stage.clear();
-        buildUI();
+        game.setScreen(new SettingsScreen(game));
+        dispose();
     }
 
     private Label sectionLabel(String text) {

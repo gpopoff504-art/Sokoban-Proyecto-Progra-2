@@ -58,9 +58,9 @@ public class RegisterScreen implements Screen {
         lblTitle.setColor(new Color(0.537f, 0.863f, 0.922f, 1f));
         lblTitle.setFontScale(1.8f);
 
-        txtUsername = makeField(LanguageManager.get(LanguageManager.KEY_NEW_USERNAME));
+        txtUsername = makeField(LanguageManager.get("new_username"));
         txtFullName = makeField("Nombre completo");
-        txtPassword = makeField(LanguageManager.get(LanguageManager.KEY_NEW_PASSWORD));
+        txtPassword = makeField(LanguageManager.get("new_password"));
         txtPassword.setPasswordMode(true);
         txtPassword.setPasswordCharacter('*');
         txtConfirm  = makeField("Confirmar contraseña");
@@ -71,15 +71,15 @@ public class RegisterScreen implements Screen {
         lblMessage.setColor(new Color(0.953f, 0.545f, 0.659f, 1f));
 
         TextButton btnRegister = new TextButton("Registrarse", skin);
-        TextButton btnBack     = new TextButton(LanguageManager.get(LanguageManager.KEY_BACK), skin);
+        TextButton btnBack = new TextButton(LanguageManager.get("back"), skin);
 
         root.pad(40);
         root.add(lblTitle).center().padBottom(24).row();
-        root.add(makeLabel(LanguageManager.get(LanguageManager.KEY_USERNAME), skin)).left().padBottom(4).row();
+        root.add(makeLabel(LanguageManager.get("username"), skin)).left().padBottom(4).row();
         root.add(txtUsername).width(320).padBottom(12).row();
         root.add(makeLabel("Nombre completo", skin)).left().padBottom(4).row();
         root.add(txtFullName).width(320).padBottom(12).row();
-        root.add(makeLabel(LanguageManager.get(LanguageManager.KEY_PASSWORD), skin)).left().padBottom(4).row();
+        root.add(makeLabel(LanguageManager.get("password"), skin)).left().padBottom(4).row();
         root.add(txtPassword).width(320).padBottom(12).row();
         root.add(makeLabel("Confirmar contraseña", skin)).left().padBottom(4).row();
         root.add(txtConfirm).width(320).padBottom(8).row();
@@ -128,7 +128,7 @@ public class RegisterScreen implements Screen {
             game.setScreen(new AvatarScreen(game, true));
             if (oldScreen != null) oldScreen.dispose();
         } else {
-            showMessage(LanguageManager.get(LanguageManager.KEY_ERR_TAKEN), false);
+            showMessage(LanguageManager.get("err_taken"), false);
         }
     }
 

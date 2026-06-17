@@ -17,6 +17,9 @@ public class Player implements Serializable {
     
     private static final long serialVersionUID = 1L;
     
+    private int nivelesCompletados = 0;
+    private long tiempoTotalNiveles = 0;
+    
     private String username;
     private String password;
     private String fullName;
@@ -34,7 +37,10 @@ public class Player implements Serializable {
     private Language language;
     
     private List<String> friends;
-    
+    private List<String> solicitudesPendientes;
+
+    private boolean activa = true;
+
     public Player(String username, String password, String fullName) {
         this.username = username;
         this.password = password;
@@ -49,6 +55,7 @@ public class Player implements Serializable {
         this.volume = 1.0f;
         this.language = Language.SPANISH;
         this.avatarPath = "default";
+        this.solicitudesPendientes = new ArrayList<>();
     }
     
     public String getUsername() { return username; }
@@ -73,7 +80,14 @@ public class Player implements Serializable {
     
     public int getTotalScore() { return totalScore; }
     public void setTotalScore(int totalScore) { this.totalScore = totalScore; }
-    
+    public int getNivelesCompletados(){ return nivelesCompletados; }
+    public void setNivelesCompletados(int n){ this.nivelesCompletados = n; }
+    public long getTiempoTotalNiveles(){ return tiempoTotalNiveles; }
+    public void setTiempoTotalNiveles(long t){ this.tiempoTotalNiveles = t; }
+    public double getTiempoPromedioPorNivel(){
+        if(nivelesCompletados == 0) return 0;
+    return (double) tiempoTotalNiveles / nivelesCompletados;
+}
     public long getTotalTimePlayed() { return totalTimePlayed; }
     public void setTotalTimePlayed(long totalTimePlayed) { this.totalTimePlayed = totalTimePlayed; }
     
@@ -90,6 +104,17 @@ public class Player implements Serializable {
     public void addFriend(String friendUsername) { this.friends.add(friendUsername); }
     public void removeFriend(String friendUsername) { this.friends.remove(friendUsername); }
     
+    public boolean isActiva(){ return activa; }
+    public void setActiva(boolean activa){ this.activa = activa; }
+
+    public List<String> getSolicitudesPendientes(){ return solicitudesPendientes; }
+    public void agregarSolicitud(String username){ 
+        if(!solicitudesPendientes.contains(username)) 
+            solicitudesPendientes.add(username); 
+    }
+    public void eliminarSolicitud(String username){ solicitudesPendientes.remove(username); }
+    public void setSolicitudesPendientes(java.util.List<String> solicitudes){ this.solicitudesPendientes = solicitudes; }
+
     @Override
     public String toString() {
         return "Player{username='" + username + "', fullName='" + fullName + 

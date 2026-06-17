@@ -27,6 +27,7 @@ import com.Sokoban.model.Level5;
 import com.Sokoban.model.AuthManager;
 import com.Sokoban.model.Player;
 import com.Sokoban.filehandling.FileManager;
+import com.Sokoban.model.LanguageManager;
 /**
  *
  * @author gpopo
@@ -84,15 +85,15 @@ public class GameScreen implements Screen{
         hud.top().pad(10);
         stage.addActor(hud);
 
-        lblTiempo = new Label("Tiempo: 0s", skin);
+        lblTiempo = new Label(LanguageManager.get("time") + ": 0s", skin);
         lblTiempo.setColor(new Color(0.976f, 0.886f, 0.686f, 1f));
         hud.add(lblTiempo).expandX().left().padLeft(20);
 
-        Label lblNivel = new Label("Nivel: " + level, skin);
+        Label lblNivel = new Label(LanguageManager.get("level") + ": " + level, skin);
         lblNivel.setColor(Color.WHITE);
         hud.add(lblNivel).expandX().center();
 
-        lblMovimientos = new Label("Movimientos: 0", skin);
+        lblMovimientos = new Label(LanguageManager.get("movements") + ": 0", skin);
         lblMovimientos.setColor(new Color(0.976f, 0.886f, 0.686f, 1f));
         hud.add(lblMovimientos).expandX().right().padRight(20);
 
@@ -102,7 +103,7 @@ public class GameScreen implements Screen{
         rootBottom.bottom().pad(10);
         stage.addActor(rootBottom);
 
-        TextButton btnBack = new TextButton("Volver al Mapa", skin);
+        TextButton btnBack = new TextButton(LanguageManager.get("back_map"), skin);
         rootBottom.add(btnBack).width(240).height(48);
         btnBack.addListener(new ChangeListener(){
             @Override
@@ -116,6 +117,21 @@ public class GameScreen implements Screen{
                 dispose();
             }
         });
+        TextButton btnReset = new TextButton(LanguageManager.get("reset"), skin);
+        rootBottom.add(btnReset).width(140).height(48).padLeft(10);
+
+        btnReset.addListener(new ChangeListener(){
+            @Override
+            public void changed(ChangeEvent event, Actor actor){
+                Player player = AuthManager.getCurrentPlayer();
+                if(player != null){
+                    player.setTotalTimePlayed(player.getTotalTimePlayed() + (long)tiempoTotal);
+                    FileManager.savePlayer(player);
+                }
+                game.setScreen(new GameScreen(game, level));
+                dispose();
+            }
+        });
 
         // Panel victoria
         Table overlay = new Table();
@@ -125,17 +141,17 @@ public class GameScreen implements Screen{
         stage.addActor(overlay);
         panelVictoria = overlay;
 
-        Label lblGano = new Label("¡Ganaste!", skin);
+        Label lblGano = new Label(LanguageManager.get("you_win"), skin);
         lblGano.setColor(new Color(0.537f, 0.863f, 0.922f, 1f));
         lblGano.setFontScale(2f);
 
-        lblTiempoVictoria = new Label("Tiempo: 0s", skin);
+        lblTiempoVictoria = new Label(LanguageManager.get("time") + ": 0s", skin);
         lblTiempoVictoria.setColor(Color.WHITE);
 
-        lblMovsVictoria = new Label("Movimientos: 0", skin);
+        lblMovsVictoria = new Label(LanguageManager.get("movements") + ": 0", skin);
         lblMovsVictoria.setColor(Color.WHITE);
 
-        TextButton btnSiguiente = new TextButton(level == 5 ? "Volver al Menu" : "Siguiente Nivel", skin);
+        TextButton btnSiguiente = new TextButton(level == 5 ? LanguageManager.get("back_menu") : LanguageManager.get("next_level"), skin);
 
         overlay.center();
         overlay.add(lblGano).padBottom(16).row();
@@ -239,8 +255,8 @@ public class GameScreen implements Screen{
             tiempoTotal += delta;
             int seg = (int) tiempoTotal;
             int centesimas = (int)((tiempoTotal - seg) * 100);
-            lblTiempo.setText("Tiempo: " + seg + "." + String.format("%02d", centesimas) + "s");
-            lblMovimientos.setText("Movimientos: " + movimientos);
+            lblTiempo.setText(LanguageManager.get("time") +" : " + seg + "." + String.format("%02d", centesimas) + "s");
+            lblMovimientos.setText(LanguageManager.get("movements") + ": " + movimientos);
         }
         handleInput();
         jugador.update(delta);
@@ -254,8 +270,8 @@ public class GameScreen implements Screen{
             gano = true;
             int seg = (int) tiempoTotal;
             int centesimas = (int)((tiempoTotal - seg) * 100);
-            lblTiempoVictoria.setText("Tiempo: " + seg + "." + String.format("%02d", centesimas) + "s");
-            lblMovsVictoria.setText("Movimientos: " + movimientos);
+            lblTiempoVictoria.setText(LanguageManager.get("time") + ": " + seg + "." + String.format("%02d", centesimas) + "s");
+            lblMovsVictoria.setText(LanguageManager.get("movements") + ": " + movimientos);
             panelVictoria.setVisible(true);
             Player player = AuthManager.getCurrentPlayer();
             if(player != null){
@@ -263,8 +279,9 @@ public class GameScreen implements Screen{
                     player.setCurrentLevel(level + 1);
                 }
                 player.setTotalTimePlayed(player.getTotalTimePlayed() + (long)tiempoTotal);
-                player.addGameHistory("Nivel " + level + " - Tiempo: " + (int)tiempoTotal + "s - Movimientos: " + movimientos);
-                FileManager.savePlayer(player);
+                player.setNivelesCompletados(player.getNivelesCompletados() + 1);
+                player.setTiempoTotalNiveles(player.getTiempoTotalNiveles() + (long)tiempoTotal);
+                player.addGameHistory(LanguageManager.get("level") + " " + level + " - " + LanguageManager.get("time") + ": " + (int)tiempoTotal + "s - " + LanguageManager.get("movements") + ": " + movimientos);            
             }
         }
 

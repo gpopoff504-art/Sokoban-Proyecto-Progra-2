@@ -4,6 +4,7 @@
  */
 package com.Sokoban;
 
+import com.Sokoban.model.LanguageManager;
 import com.badlogic.gdx.Game;
 
 /**
@@ -13,7 +14,8 @@ import com.badlogic.gdx.Game;
 public class Main extends Game {
 
     @Override
-    public void create() {
+    public void create(){
+        LanguageManager.init();
         setScreen(new LoginScreen(this));
     }
 }

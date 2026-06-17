@@ -24,7 +24,10 @@ public abstract class BaseScreen implements Screen{
         batchBase = new SpriteBatch();
         cargarAvatar();
     }
-
+    
+    protected void resetearNivel(){
+    }
+    
     private void cargarAvatar(){
         Player player = AuthManager.getCurrentPlayer();
         String ruta;
