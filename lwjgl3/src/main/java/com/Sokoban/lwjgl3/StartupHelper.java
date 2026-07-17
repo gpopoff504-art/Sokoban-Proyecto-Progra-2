@@ -105,17 +105,17 @@ public class StartupHelper {
 		String osName = System.getProperty("os.name").toLowerCase(Locale.ROOT);
 		if (osName.contains("mac")) return startNewJvm0(/*isMac =*/ true, inheritIO);
 		if (osName.contains("windows")) {
-			// Here, we are trying to work around an issue with how LWJGL3 loads its extracted .dll files.
-			// By default, LWJGL3 extracts to the directory specified by "java.io.tmpdir": usually, the user's home.
-			// If the user's name has non-ASCII (or some non-alphanumeric) characters in it, that would fail.
-			// By extracting to the relevant "ProgramData" folder, which is usually "C:\ProgramData", we avoid this.
-			// We also temporarily change the "user.name" property to one without any chars that would be invalid.
-			// We revert our changes immediately after loading LWJGL3 natives.
-			String programData = System.getenv("ProgramData");
-			if (programData == null) programData = "C:\\Temp"; // if ProgramData isn't set, try some fallback.
-			String prevTmpDir = System.getProperty("java.io.tmpdir", programData);
+			// Use the user's local temp folder instead of ProgramData to avoid Application Control policies.
+			String userHome = System.getProperty("user.home");
+			String localAppData = System.getenv("LOCALAPPDATA");
+			String tempDir;
+			tempDir = System.getProperty("user.dir") + "\\build\\libGDX-temp";
+			// Create the directory if it doesn't exist
+			new File(tempDir).mkdirs();
+
+			String prevTmpDir = System.getProperty("java.io.tmpdir", tempDir);
 			String prevUser = System.getProperty("user.name", "libGDX_User");
-			System.setProperty("java.io.tmpdir", programData + "\\libGDX-temp");
+			System.setProperty("java.io.tmpdir", tempDir);
 			System.setProperty(
 				"user.name",
 				("User_" + prevUser.hashCode() + "_GDX" + Version.VERSION).replace('.', '_')

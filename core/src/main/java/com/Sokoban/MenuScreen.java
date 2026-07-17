@@ -145,7 +145,7 @@ public class MenuScreen extends BaseScreen {
                 Screen oldScreen = game.getScreen();
                 game.setScreen(new LoginScreen(game));
                 if (oldScreen != null) oldScreen.dispose();
-            }         
+            }          
         });
     }
 

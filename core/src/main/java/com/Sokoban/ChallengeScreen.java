@@ -5,7 +5,6 @@
 package com.Sokoban;
 
 import com.Sokoban.filehandling.ChallengeFileManager;
-import com.Sokoban.filehandling.FileManager;
 import com.Sokoban.model.AuthManager;
 import com.Sokoban.model.LanguageManager;
 import com.Sokoban.model.Player;
@@ -29,17 +28,16 @@ import java.util.List;
  */
 public class ChallengeScreen extends BaseScreen {
 
-    private static final Color BG    = new Color(0.118f, 0.118f, 0.180f, 1f);
-    private static final Color CYAN  = new Color(0.537f, 0.863f, 0.922f, 1f);
+    private static final Color BG   = new Color(0.118f, 0.118f, 0.180f, 1f);
+    private static final Color CYAN = new Color(0.537f, 0.863f, 0.922f, 1f);
+    private static final Color GOLD = new Color(0.976f, 0.886f, 0.686f, 1f);
     private static final Color MUTED = new Color(0.651f, 0.678f, 0.784f, 1f);
     private static final Color GREEN = new Color(0.651f, 0.890f, 0.631f, 1f);
     private static final Color RED   = new Color(0.953f, 0.545f, 0.659f, 1f);
-    private static final Color GOLD  = new Color(0.976f, 0.886f, 0.686f, 1f);
 
     private final Main game;
     private Stage stage;
     private Skin skin;
-    private Label lblMsg;
 
     public ChallengeScreen(Main game) {
         this.game = game;
@@ -56,43 +54,44 @@ public class ChallengeScreen extends BaseScreen {
 
         Table root = new Table();
         root.setFillParent(true);
-        root.top().pad(28);
+        root.top().pad(30);
         root.setBackground(skin.newDrawable("white", BG));
         stage.addActor(root);
 
         Label lblTitle = new Label(LanguageManager.get("challenges"), skin);
         lblTitle.setColor(CYAN);
         lblTitle.setFontScale(1.8f);
-        root.add(lblTitle).colspan(2).center().padBottom(6).row();
-
-        lblMsg = new Label("", skin);
-        lblMsg.setColor(GREEN);
-        root.add(lblMsg).colspan(2).center().padBottom(10).row();
+        root.add(lblTitle).center().padBottom(24).row();
 
         // Retos recibidos pendientes
-        Label lblRecibidos = new Label(LanguageManager.get("challenges_received"), skin);
+        Label lblRecibidos = new Label(LanguageManager.get("inbox"), skin);
         lblRecibidos.setColor(MUTED);
-        root.add(lblRecibidos).colspan(2).left().padBottom(4).row();
+        lblRecibidos.setFontScale(1.1f);
+        root.add(lblRecibidos).left().padBottom(8).row();
 
         Table tblRecibidos = new Table();
         List<long[]> recibidos = ChallengeFileManager.getRetosParaUsuario(me.getUsername());
+
         if (recibidos.isEmpty()) {
             Label lbl = new Label(LanguageManager.get("no_challenges"), skin);
             lbl.setColor(Color.WHITE);
-            tblRecibidos.add(lbl).row();
+            tblRecibidos.add(lbl).center().padBottom(8).row();
         } else {
-            for (long[] rec : recibidos) {
-                final long idx   = rec[0];
-                final int  nivel = (int) rec[1];
-                final int  sRet  = (int) rec[2];
+            for (long[] reto : recibidos) {
+                final long idx  = reto[0];
+                final int nivel = (int) reto[1];
+                final int scoreRetador = (int) reto[2];
+
                 String retador = ChallengeFileManager.getRetador(idx);
 
-                String info = retador + "  →  " + LanguageManager.get("level") + " " + nivel
-                    + "   " + LanguageManager.get("their_score") + ": " + (sRet > 0 ? sRet + " pts" : "?");
-                Label lblInfo = new Label(info, skin);
-                lblInfo.setColor(Color.WHITE);
+                Label lblInfo = new Label(
+                    LanguageManager.get("challenge_from") + " " + retador +
+                    "  |  " + LanguageManager.get("level") + " " + nivel +
+                    "  |  " + scoreRetador + " pts", skin);
+                lblInfo.setColor(GOLD);
 
-                TextButton btnAceptar  = new TextButton(LanguageManager.get("accept"), skin);
+                TextButton btnAceptar = new TextButton(LanguageManager.get("accept"), skin);
+                btnAceptar.setColor(GREEN);
                 TextButton btnRechazar = new TextButton(LanguageManager.get("reject"), skin);
                 btnRechazar.setColor(RED);
 
@@ -104,6 +103,7 @@ public class ChallengeScreen extends BaseScreen {
                         dispose();
                     }
                 });
+
                 btnRechazar.addListener(new ChangeListener() {
                     @Override
                     public void changed(ChangeEvent event, Actor actor) {
@@ -113,79 +113,90 @@ public class ChallengeScreen extends BaseScreen {
                     }
                 });
 
-                tblRecibidos.add(lblInfo).left().width(260).padBottom(8);
-                tblRecibidos.add(btnAceptar).width(80).height(34).padRight(4).padBottom(8);
-                tblRecibidos.add(btnRechazar).width(80).height(34).padBottom(8).row();
+                tblRecibidos.add(lblInfo).left().width(280).padBottom(8);
+                tblRecibidos.add(btnAceptar).width(80).height(36).padRight(6).padBottom(8);
+                tblRecibidos.add(btnRechazar).width(80).height(36).padBottom(8).row();
             }
         }
 
-        ScrollPane scrollRec = new ScrollPane(tblRecibidos, skin);
-        scrollRec.setScrollingDisabled(true, false);
-        root.add(scrollRec).colspan(2).width(480).height(130).padBottom(14).row();
+        ScrollPane scrollRecibidos = new ScrollPane(tblRecibidos, skin);
+        scrollRecibidos.setScrollingDisabled(true, false);
+        root.add(scrollRecibidos).width(500).height(180).padBottom(20).row();
 
-        // Retos enviados / en curso
-        Label lblEnviados = new Label(LanguageManager.get("challenges_sent"), skin);
+        // Retos enviados
+        Label lblEnviados = new Label(LanguageManager.get("challenge") + "s enviados", skin);
         lblEnviados.setColor(MUTED);
-        root.add(lblEnviados).colspan(2).left().padBottom(4).row();
+        lblEnviados.setFontScale(1.1f);
+        root.add(lblEnviados).left().padBottom(8).row();
 
         Table tblEnviados = new Table();
         List<long[]> enviados = ChallengeFileManager.getRetosEnviados(me.getUsername());
+
         if (enviados.isEmpty()) {
             Label lbl = new Label(LanguageManager.get("no_challenges"), skin);
             lbl.setColor(Color.WHITE);
-            tblEnviados.add(lbl).row();
+            tblEnviados.add(lbl).center().padBottom(8).row();
         } else {
-            for (long[] env : enviados) {
-                final long idx   = env[0];
-                final int  nivel = (int) env[1];
-                final int  sRet  = (int) env[2];
-                final int  sRtd  = (int) env[3];
-                final int  estado = (int) env[4];
-                String retado = ChallengeFileManager.getRetado(idx);
+            for (long[] reto : enviados) {
+                final long idx  = reto[0];
+                final int nivel = (int) reto[1];
+                final int scoreRetador = (int) reto[2];
+                final int scoreRetado  = (int) reto[3];
+                final int estado       = (int) reto[4];
 
+                String retado = ChallengeFileManager.getRetado(idx);
                 String estadoStr;
-                Color  estadoColor;
+                Color estadoColor;
+
                 switch (estado) {
                     case ChallengeFileManager.PENDIENTE:
-                        estadoStr = LanguageManager.get("challenge_pending"); estadoColor = GOLD; break;
+                        estadoStr  = "Pendiente";
+                        estadoColor = GOLD;
+                        break;
                     case ChallengeFileManager.ACEPTADO:
-                        estadoStr = LanguageManager.get("challenge_playing"); estadoColor = CYAN; break;
+                        estadoStr  = "En juego";
+                        estadoColor = CYAN;
+                        break;
                     case ChallengeFileManager.COMPLETADO:
-                        boolean gane = sRet > sRtd;
-                        estadoStr = gane ? LanguageManager.get("challenge_won")
-                                        : LanguageManager.get("challenge_lost");
-                        estadoColor = gane ? GREEN : RED;
+                        if (scoreRetador > scoreRetado) {
+                            estadoStr  = "Ganaste!";
+                            estadoColor = GREEN;
+                        } else if (scoreRetador < scoreRetado) {
+                            estadoStr  = "Perdiste";
+                            estadoColor = RED;
+                        } else {
+                            estadoStr  = "Empate";
+                            estadoColor = GOLD;
+                        }
+                        break;
+                    case ChallengeFileManager.RECHAZADO:
+                        estadoStr  = "Rechazado";
+                        estadoColor = RED;
                         break;
                     default:
-                        estadoStr = LanguageManager.get("challenge_rejected"); estadoColor = RED; break;
+                        estadoStr  = "?";
+                        estadoColor = Color.WHITE;
                 }
 
-                String info = retado + "  ·  " + LanguageManager.get("level") + " " + nivel
-                    + "   " + LanguageManager.get("score") + ": " + sRet + " pts";
-                Label lblInfo = new Label(info, skin);
+                Label lblInfo = new Label(
+                    retado + "  |  " + LanguageManager.get("level") + " " + nivel +
+                    "  |  Tu: " + scoreRetador + " pts", skin);
                 lblInfo.setColor(Color.WHITE);
+
                 Label lblEstado = new Label(estadoStr, skin);
                 lblEstado.setColor(estadoColor);
 
-                tblEnviados.add(lblInfo).left().width(300).padBottom(8);
-                tblEnviados.add(lblEstado).left().width(160).padBottom(8).row();
-
-                // Si completado, mostrar resultado detallado
-                if (estado == ChallengeFileManager.COMPLETADO) {
-                    Label lblScores = new Label(
-                        "  " + me.getUsername() + ": " + sRet + " pts   " + retado + ": " + sRtd + " pts", skin);
-                    lblScores.setColor(MUTED);
-                    tblEnviados.add(lblScores).colspan(2).left().padBottom(8).row();
-                }
+                tblEnviados.add(lblInfo).left().width(320).padBottom(8);
+                tblEnviados.add(lblEstado).width(100).center().padBottom(8).row();
             }
         }
 
-        ScrollPane scrollEnv = new ScrollPane(tblEnviados, skin);
-        scrollEnv.setScrollingDisabled(true, false);
-        root.add(scrollEnv).colspan(2).width(480).height(150).padBottom(14).row();
+        ScrollPane scrollEnviados = new ScrollPane(tblEnviados, skin);
+        scrollEnviados.setScrollingDisabled(true, false);
+        root.add(scrollEnviados).width(500).height(180).padBottom(20).row();
 
         TextButton btnBack = new TextButton(LanguageManager.get("back"), skin);
-        root.add(btnBack).colspan(2).width(280).height(48).padTop(8).row();
+        root.add(btnBack).width(280).height(48).row();
         btnBack.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -217,6 +228,6 @@ public class ChallengeScreen extends BaseScreen {
     public void dispose() {
         disposeBase();
         if (stage != null) stage.dispose();
-        if (skin != null) skin.dispose();
+        if (skin  != null) skin.dispose();
     }
 }

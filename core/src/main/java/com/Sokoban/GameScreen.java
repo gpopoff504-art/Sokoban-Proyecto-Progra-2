@@ -43,7 +43,7 @@ public class GameScreen implements Screen {
     private SpriteBatch batch;
     private Level nivelActual;
     private Jugador jugador;
-    private Juego juego; 
+    private Juego juego;
     private static final int TILE_SIZE = 80;
     private int offsetX;
     private int offsetY;
@@ -99,13 +99,14 @@ public class GameScreen implements Screen {
         lblMovimientos.setColor(new Color(0.976f, 0.886f, 0.686f, 1f));
         hud.add(lblMovimientos).expandX().right().padRight(20);
 
+        // Botones abajo
         Table rootBottom = new Table();
         rootBottom.setFillParent(true);
         rootBottom.bottom().pad(10);
         stage.addActor(rootBottom);
 
         TextButton btnBack = new TextButton(LanguageManager.get("back_map"), skin);
-        rootBottom.add(btnBack).width(240).height(48);
+        rootBottom.add(btnBack).width(200).height(48);
         btnBack.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -119,8 +120,17 @@ public class GameScreen implements Screen {
             }
         });
 
+        TextButton btnUndo = new TextButton("Undo (Z)", skin);
+        rootBottom.add(btnUndo).width(120).height(48).padLeft(8);
+        btnUndo.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                juego.undo();
+            }
+        });
+
         TextButton btnReset = new TextButton(LanguageManager.get("reset"), skin);
-        rootBottom.add(btnReset).width(140).height(48).padLeft(10);
+        rootBottom.add(btnReset).width(120).height(48).padLeft(8);
         btnReset.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -129,11 +139,13 @@ public class GameScreen implements Screen {
                     player.setTotalTimePlayed(player.getTotalTimePlayed() + (long) juego.getTiempoTotal());
                     FileManager.savePlayer(player);
                 }
+                juego.resetear();
                 game.setScreen(new GameScreen(game, level));
                 dispose();
             }
         });
 
+        // Panel victoria
         Table overlay = new Table();
         overlay.setFillParent(true);
         overlay.setVisible(false);
@@ -194,6 +206,9 @@ public class GameScreen implements Screen {
         } else if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.DOWN) ||
                 Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.S)) {
             dir = "down";
+        } else if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.Z)) {
+            juego.undo();
+            return;
         }
 
         if (dir != null) {

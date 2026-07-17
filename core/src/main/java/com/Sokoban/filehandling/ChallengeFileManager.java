@@ -5,6 +5,7 @@
 package com.Sokoban.filehandling;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -53,6 +54,57 @@ public class ChallengeFileManager {
             System.err.println("ChallengeFileManager.enviarReto: " + e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * Borra todos los retos donde el usuario sea retador o retado,
+     * siempre que el estado sea PENDIENTE o ACEPTADO (no completados).
+     * Reescribe el archivo sin esos registros.
+     */
+    public static void borrarRetosDeUsuario(String username) {
+        File f = new File(FILE);
+        if (!f.exists()) return;
+
+        List<byte[]> registrosRestantes = new ArrayList<>();
+
+        try (RandomAccessFile raf = new RandomAccessFile(FILE, "r")) {
+            long total = raf.length() / REC_SIZE;
+            for (long i = 0; i < total; i++) {
+                raf.seek(i * REC_SIZE);
+                byte[] rec = new byte[REC_SIZE];
+                raf.readFully(rec);
+
+                String retador = new String(rec, 0, USER_SIZE).trim();
+                String retado  = new String(rec, USER_SIZE, USER_SIZE).trim();
+                int estado = bytesToInt(rec, USER_SIZE * 2 + 4 * 3);
+
+                boolean involucrado = retador.equals(username) || retado.equals(username);
+                boolean activo = estado == PENDIENTE || estado == ACEPTADO;
+
+                if (!(involucrado && activo)) {
+                    registrosRestantes.add(rec);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("ChallengeFileManager.borrarRetosDeUsuario (lectura): " + e.getMessage());
+            return;
+        }
+
+        // Reescribir el archivo sin los retos del usuario
+        try (FileOutputStream fos = new FileOutputStream(FILE, false)) {
+            for (byte[] rec : registrosRestantes) {
+                fos.write(rec);
+            }
+        } catch (IOException e) {
+            System.err.println("ChallengeFileManager.borrarRetosDeUsuario (escritura): " + e.getMessage());
+        }
+    }
+
+    private static int bytesToInt(byte[] b, int offset) {
+        return ((b[offset] & 0xFF) << 24)
+             | ((b[offset+1] & 0xFF) << 16)
+             | ((b[offset+2] & 0xFF) << 8)
+             |  (b[offset+3] & 0xFF);
     }
 
     public static List<long[]> getRetosParaUsuario(String username) {
@@ -154,4 +206,42 @@ public class ChallengeFileManager {
         System.arraycopy(src, 0, b, 0, Math.min(src.length, size));
         raf.write(b);
     }
+
+    /**
+     * Retorna [ganaronA, ganaronB, empates] entre dos usuarios en retos completados.
+     * ganaronA = cuantos retos gano userA contra userB
+     * ganaronB = cuantos retos gano userB contra userA
+     */
+    public static int[] getH2H(String userA, String userB) {
+        int[] result = {0, 0, 0}; // [ganaA, ganaB, empates]
+        File f = new File(FILE);
+        if (!f.exists()) return result;
+        try (RandomAccessFile raf = new RandomAccessFile(FILE, "r")) {
+            long total = raf.length() / REC_SIZE;
+            for (long i = 0; i < total; i++) {
+                raf.seek(i * REC_SIZE);
+                String retador = readStr(raf, USER_SIZE);
+                String retado  = readStr(raf, USER_SIZE);
+                int nivel      = raf.readInt();
+                int sRetador   = raf.readInt();
+                int sRetado    = raf.readInt();
+                int estado     = raf.readInt();
+                if (estado != COMPLETADO) continue;
+                boolean match1 = retador.equals(userA) && retado.equals(userB);
+                boolean match2 = retador.equals(userB) && retado.equals(userA);
+                if (!match1 && !match2) continue;
+                // En match1: retador=A, retado=B
+                // En match2: retador=B, retado=A
+                int scoreA = match1 ? sRetador : sRetado;
+                int scoreB = match1 ? sRetado  : sRetador;
+                if (scoreA > scoreB) result[0]++;
+                else if (scoreB > scoreA) result[1]++;
+                else result[2]++;
+            }
+        } catch (IOException e) {
+            System.err.println("ChallengeFileManager.getH2H: " + e.getMessage());
+        }
+        return result;
+    }
+
 }

@@ -6,6 +6,8 @@ package com.Sokoban;
 
 import com.Sokoban.model.Level;
 import com.Sokoban.model.Jugador;
+import java.util.ArrayDeque;
+
 /**
  *
  * @author Rogelio
@@ -15,12 +17,47 @@ public class Sokoban extends Juego {
     private Level nivelActual;
     private Jugador jugador;
     private Tiempo worker;
+    private ArrayDeque<int[][]> historialMapas;
+    private ArrayDeque<int[]> historialJugador;
 
     public Sokoban(Level nivelActual, Jugador jugador) {
         this.nivelActual = nivelActual;
         this.jugador = jugador;
         this.worker = new Tiempo();
+        this.historialMapas = new ArrayDeque<>();
+        this.historialJugador = new ArrayDeque<>();
         this.worker.start();
+    }
+
+    private int[][] copiarMapa(int[][] mapa) {
+        int[][] copia = new int[mapa.length][mapa[0].length];
+        for (int f = 0; f < mapa.length; f++) {
+            for (int c = 0; c < mapa[0].length; c++) {
+                copia[f][c] = mapa[f][c];
+            }
+        }
+        return copia;
+    }
+
+    private void guardarEstado() {
+        historialMapas.push(copiarMapa(nivelActual.getMapa()));
+        historialJugador.push(new int[]{jugador.getGridX(), jugador.getGridY()});
+    }
+
+    public void undo() {
+        if (historialMapas.isEmpty()) return;
+        int[][] mapaAnterior = historialMapas.pop();
+        int[] posAnterior = historialJugador.pop();
+        int[][] mapa = nivelActual.getMapa();
+        for (int f = 0; f < mapa.length; f++) {
+            for (int c = 0; c < mapa[0].length; c++) {
+                mapa[f][c] = mapaAnterior[f][c];
+            }
+        }
+        jugador.setGridX(posAnterior[0]);
+        jugador.setGridY(posAnterior[1]);
+        jugador.setIdle();
+        movimientos++;
     }
 
     @Override
@@ -29,6 +66,7 @@ public class Sokoban extends Juego {
         if (movimientos == 0) {
             worker.activar();
         }
+        guardarEstado();
         int dx = 0, dy = 0;
         switch (dir) {
             case "left":  dx = -1; break;
@@ -46,23 +84,31 @@ public class Sokoban extends Juego {
         int py = jugador.getGridY();
         int nx = px + dx;
         int ny = py + dy;
-
-        if (nx < 0 || ny < 0 || ny >= nivelActual.getFilas() || nx >= nivelActual.getColumnas()) return;
-
-        int celda = mapa[ny][nx];
-
-        if (celda == Level.MURO || celda == Level.VACIO) {
-            jugador.setIdle();
+        if (nx < 0 || ny < 0 || ny >= nivelActual.getFilas() || nx >= nivelActual.getColumnas()) {
+            historialMapas.pop();
+            historialJugador.pop();
             return;
         }
-
+        int celda = mapa[ny][nx];
+        if (celda == Level.MURO || celda == Level.VACIO) {
+            jugador.setIdle();
+            historialMapas.pop();
+            historialJugador.pop();
+            return;
+        }
         if (celda == Level.CAJA) {
             int cx = nx + dx;
             int cy = ny + dy;
-            if (cx < 0 || cy < 0 || cy >= nivelActual.getFilas() || cx >= nivelActual.getColumnas()) return;
+            if (cx < 0 || cy < 0 || cy >= nivelActual.getFilas() || cx >= nivelActual.getColumnas()) {
+                historialMapas.pop();
+                historialJugador.pop();
+                return;
+            }
             int detras = mapa[cy][cx];
             if (detras == Level.MURO || detras == Level.CAJA || detras == Level.VACIO) {
                 jugador.setIdle();
+                historialMapas.pop();
+                historialJugador.pop();
                 return;
             }
             mapa[cy][cx] = Level.CAJA;
@@ -71,10 +117,15 @@ public class Sokoban extends Juego {
         } else {
             jugador.setMoviendo(dir, false);
         }
-
         jugador.setGridX(nx);
         jugador.setGridY(ny);
         movimientos++;
+    }
+
+    @Override
+    public void resetear() {
+        historialMapas.clear();
+        historialJugador.clear();
     }
 
     @Override
@@ -104,6 +155,7 @@ public class Sokoban extends Juego {
         jugador.update(delta);
     }
 
+    @Override
     public void detener() {
         worker.finalizar();
     }

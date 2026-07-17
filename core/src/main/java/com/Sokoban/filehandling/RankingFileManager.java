@@ -18,7 +18,7 @@ public class RankingFileManager {
 
     private static final String RANKING_FILE = "data/ranking.dat";
     private static final int USERNAME_SIZE = 20;
-    private static final int RECORD_SIZE = USERNAME_SIZE + 4 + 4; // username + score + nivel
+    private static final int RECORD_SIZE = USERNAME_SIZE + 4 + 4; // username + nivel + score
 
     public static void guardarOActualizar(String username, int score, int nivel) {
         File file = new File(RANKING_FILE);
@@ -49,6 +49,34 @@ public class RankingFileManager {
 
         } catch (IOException e) {
             System.err.println("Error en ranking: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Reemplaza el username del usuario borrado por "Usuario eliminado"
+     * en todas sus entradas del ranking.
+     */
+    public static void anonimizarUsuario(String username) {
+        File file = new File(RANKING_FILE);
+        if (!file.exists()) return;
+
+        try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
+            long totalRecords = raf.length() / RECORD_SIZE;
+            for (long i = 0; i < totalRecords; i++) {
+                raf.seek(i * RECORD_SIZE);
+                byte[] usernameBytes = new byte[USERNAME_SIZE];
+                raf.read(usernameBytes);
+                String storedUsername = new String(usernameBytes).trim();
+                if (storedUsername.equals(username)) {
+                    raf.seek(i * RECORD_SIZE);
+                    byte[] anonBytes = new byte[USERNAME_SIZE];
+                    byte[] src = "Usuario eliminado".getBytes();
+                    System.arraycopy(src, 0, anonBytes, 0, Math.min(src.length, USERNAME_SIZE));
+                    raf.write(anonBytes);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("RankingFileManager.anonimizarUsuario: " + e.getMessage());
         }
     }
 
@@ -98,7 +126,7 @@ public class RankingFileManager {
                 byte[] usernameBytes = new byte[USERNAME_SIZE];
                 raf.read(usernameBytes);
                 String username = new String(usernameBytes).trim();
-                raf.readInt(); 
+                raf.readInt();
                 int score = raf.readInt();
 
                 int idx = usernames.indexOf(username);

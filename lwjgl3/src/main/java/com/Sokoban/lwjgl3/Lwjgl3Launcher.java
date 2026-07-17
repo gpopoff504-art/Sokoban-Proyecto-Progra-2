@@ -7,6 +7,10 @@ import com.Sokoban.Main;
 /** Launches the desktop (LWJGL3) application. */
 public class Lwjgl3Launcher {
     public static void main(String[] args) {
+        // Redirigir la extracción de nativos para evitar el bloqueo de las políticas de Windows
+        System.setProperty("org.lwjgl.librarypath", "."); 
+        System.setProperty("java.io.tmpdir", "./build/tmp");
+
         if (StartupHelper.startNewJvmIfRequired()) return; // This handles macOS support and helps on Windows.
         createApplication();
     }

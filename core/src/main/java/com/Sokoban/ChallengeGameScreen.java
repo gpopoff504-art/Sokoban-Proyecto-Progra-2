@@ -30,35 +30,36 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
+
 /**
  *
  * @author gpopo
  */
 public class ChallengeGameScreen implements Screen {
 
-    private static final Color BG   = new Color(0.118f, 0.118f, 0.180f, 1f);
-    private static final Color CYAN = new Color(0.537f, 0.863f, 0.922f, 1f);
-    private static final Color GOLD = new Color(0.976f, 0.886f, 0.686f, 1f);
+    private static final Color BG    = new Color(0.118f, 0.118f, 0.180f, 1f);
+    private static final Color CYAN  = new Color(0.537f, 0.863f, 0.922f, 1f);
+    private static final Color GOLD  = new Color(0.976f, 0.886f, 0.686f, 1f);
     private static final Color GREEN = new Color(0.651f, 0.890f, 0.631f, 1f);
     private static final Color RED   = new Color(0.953f, 0.545f, 0.659f, 1f);
 
     private static final int TILE_SIZE = 80;
 
-    private final Main game;
-    private final int  nivel;
-    private final long challengeIdx;
+    private final Main    game;
+    private final int     nivel;
+    private final long    challengeIdx;
     private final boolean esRetador;
 
-    private Stage    stage;
-    private Skin     skin;
+    private Stage       stage;
+    private Skin        skin;
     private SpriteBatch batch;
-    private Level    nivelActual;
-    private Jugador  jugador;
-    private int      offsetX, offsetY;
+    private Level       nivelActual;
+    private Jugador     jugador;
+    private int         offsetX, offsetY;
 
-    private int   movimientos = 0;
-    private float tiempoTotal = 0;
-    private boolean gano = false;
+    private int     movimientos = 0;
+    private float   tiempoTotal = 0;
+    private boolean gano        = false;
 
     private Label lblTiempo;
     private Label lblMovimientos;
@@ -66,6 +67,8 @@ public class ChallengeGameScreen implements Screen {
     private Label lblResultadoTitulo;
     private Label lblScorePropio;
     private Label lblScoreRival;
+    // Muestra el score del retador al retado antes de jugar
+    private Label lblScoreObjetivo;
 
     public ChallengeGameScreen(Main game, int nivel, long challengeIdx, boolean esRetador) {
         this.game         = game;
@@ -94,6 +97,7 @@ public class ChallengeGameScreen implements Screen {
         offsetY = (Gdx.graphics.getHeight() - nivelActual.getFilas()    * TILE_SIZE) / 2;
         jugador = new Jugador(nivelActual.getJugadorX(), nivelActual.getJugadorY());
 
+        // HUD arriba
         Table hud = new Table();
         hud.setFillParent(true);
         hud.top().pad(10);
@@ -111,6 +115,24 @@ public class ChallengeGameScreen implements Screen {
         lblMovimientos.setColor(CYAN);
         hud.add(lblMovimientos).expandX().right().padRight(20);
 
+        // Si es el retado, mostrar el score a superar
+        if (!esRetador) {
+            long[] data = obtenerDataReto(challengeIdx);
+            int scoreASuperar = (int) data[2];
+            String retador = ChallengeFileManager.getRetador(challengeIdx);
+
+            Table hudBottom = new Table();
+            hudBottom.setFillParent(true);
+            hudBottom.top().padTop(44);
+            stage.addActor(hudBottom);
+
+            lblScoreObjetivo = new Label(
+                LanguageManager.get("beat") + " " + retador + ": " + scoreASuperar + " pts", skin);
+            lblScoreObjetivo.setColor(RED);
+            hudBottom.add(lblScoreObjetivo).expandX().center().row();
+        }
+
+        // Botones abajo
         Table botones = new Table();
         botones.setFillParent(true);
         botones.bottom().pad(10);
@@ -126,7 +148,7 @@ public class ChallengeGameScreen implements Screen {
             }
         });
 
-        // Panel resultado (oculto inicialmente)
+        // Panel resultado
         Table overlay = new Table();
         overlay.setFillParent(true);
         overlay.setVisible(false);
@@ -162,7 +184,7 @@ public class ChallengeGameScreen implements Screen {
         int dx = 0, dy = 0;
         String dir = null;
 
-        if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.LEFT)  || Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.A)) { dx = -1; dir = "left";  }
+        if      (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.LEFT)  || Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.A)) { dx = -1; dir = "left";  }
         else if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.RIGHT) || Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.D)) { dx =  1; dir = "right"; }
         else if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.UP)    || Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.W)) { dy = -1; dir = "up";    }
         else if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.DOWN)  || Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.S)) { dy =  1; dir = "down";  }
@@ -173,7 +195,7 @@ public class ChallengeGameScreen implements Screen {
     private void moverJugador(int dx, int dy, String dir) {
         int[][] mapa = nivelActual.getMapa();
         int px = jugador.getGridX(), py = jugador.getGridY();
-        int nx = px + dx,           ny = py + dy;
+        int nx = px + dx,            ny = py + dy;
 
         if (nx < 0 || ny < 0 || ny >= nivelActual.getFilas() || nx >= nivelActual.getColumnas()) return;
         int celda = mapa[ny][nx];
@@ -210,55 +232,72 @@ public class ChallengeGameScreen implements Screen {
         Player me = AuthManager.getCurrentPlayer();
         if (me == null) return;
 
-        int scoreRival = 0;
-        if (esRetador) {
-            ChallengeFileManager.guardarScoreRetador(challengeIdx, puntaje);
-            // El retado aun no ha jugado
-            lblScoreRival.setText(LanguageManager.get("waiting_rival"));
-            ChallengeFileManager.actualizarEstado(challengeIdx, ChallengeFileManager.ACEPTADO);
-        } else {
-            // El retado termina: comparar con score del retador
-            long[] data = obtenerDataReto(challengeIdx);
-            scoreRival  = (int) data[2];
-            ChallengeFileManager.guardarScoreRetado(challengeIdx, puntaje);
-            ChallengeFileManager.actualizarEstado(challengeIdx, ChallengeFileManager.COMPLETADO);
-            String rival = ChallengeFileManager.getRetador(challengeIdx);
-            if (puntaje > scoreRival) {
-                lblResultadoTitulo.setText(LanguageManager.get("challenge_won"));
-                lblResultadoTitulo.setColor(GREEN);
-            } else if (puntaje < scoreRival) {
-                lblResultadoTitulo.setText(LanguageManager.get("challenge_lost"));
-                lblResultadoTitulo.setColor(RED);
-            } else {
-                lblResultadoTitulo.setText(LanguageManager.get("challenge_draw"));
-                lblResultadoTitulo.setColor(GOLD);
-            }
-            lblScoreRival.setText(rival + ": " + scoreRival + " pts");
-        }
-
-        if (esRetador) {
-            lblResultadoTitulo.setText(LanguageManager.get("challenge_score_saved"));
-            lblResultadoTitulo.setColor(CYAN);
-        }
         int seg = (int) tiempoTotal;
         lblScorePropio.setText(me.getUsername() + ": " + puntaje + " pts  ·  "
             + seg + "s  ·  " + movimientos + " " + LanguageManager.get("movements"));
 
-        me.addGameHistory("[Reto] " + LanguageManager.get("level") + " " + nivel
-            + " - " + puntaje + " pts");
-        FileManager.savePlayer(me);
+        if (esRetador) {
+            // Retador termina: guardar score y dejar en PENDIENTE para que el retado lo vea
+            ChallengeFileManager.guardarScoreRetador(challengeIdx, puntaje);
+            // Estado sigue PENDIENTE — el retado lo verá en su bandeja
+            lblResultadoTitulo.setText(LanguageManager.get("challenge_score_saved"));
+            lblResultadoTitulo.setColor(CYAN);
+            lblScoreRival.setText(LanguageManager.get("waiting_rival"));
+        } else {
+            // Retado termina: comparar con score del retador
+            long[] data    = obtenerDataReto(challengeIdx);
+            int scoreRival = (int) data[2];
+            String retador = ChallengeFileManager.getRetador(challengeIdx);
 
+            ChallengeFileManager.guardarScoreRetado(challengeIdx, puntaje);
+            ChallengeFileManager.actualizarEstado(challengeIdx, ChallengeFileManager.COMPLETADO);
+
+            lblScoreRival.setText(retador + ": " + scoreRival + " pts");
+
+            if (puntaje > scoreRival) {
+                lblResultadoTitulo.setText(LanguageManager.get("challenge_won"));
+                lblResultadoTitulo.setColor(GREEN);
+                me.getStats().addRetosGanados();
+                // Sumar derrota al retador
+                Player rival = FileManager.loadPlayer(retador);
+                if (rival != null) {
+                    rival.getStats().addRetosPerdidos();
+                    FileManager.savePlayer(rival);
+                }
+            } else if (puntaje < scoreRival) {
+                lblResultadoTitulo.setText(LanguageManager.get("challenge_lost"));
+                lblResultadoTitulo.setColor(RED);
+                me.getStats().addRetosPerdidos();
+                // Sumar victoria al retador
+                Player rival = FileManager.loadPlayer(retador);
+                if (rival != null) {
+                    rival.getStats().addRetosGanados();
+                    FileManager.savePlayer(rival);
+                }
+            } else {
+                lblResultadoTitulo.setText(LanguageManager.get("challenge_draw"));
+                lblResultadoTitulo.setColor(GOLD);
+                me.getStats().addRetosEmpatados();
+                Player rival = FileManager.loadPlayer(retador);
+                if (rival != null) {
+                    rival.getStats().addRetosEmpatados();
+                    FileManager.savePlayer(rival);
+                }
+            }
+        }
+
+        me.addGameHistory("[Reto] " + LanguageManager.get("level") + " " + nivel + " - " + puntaje + " pts");
+        FileManager.savePlayer(me);
         panelResultado.setVisible(true);
     }
 
     private long[] obtenerDataReto(long idx) {
-        // Reutilizamos getRetosEnviados buscando por idx — solución simple sin romper encapsulamiento
         java.util.List<long[]> lista = ChallengeFileManager.getRetosEnviados(
             ChallengeFileManager.getRetador(idx));
         for (long[] d : lista) {
             if (d[0] == idx) return d;
         }
-        return new long[]{idx, nivel, 0, 0, ChallengeFileManager.ACEPTADO};
+        return new long[]{idx, nivel, 0, 0, ChallengeFileManager.PENDIENTE};
     }
 
     @Override
@@ -288,21 +327,17 @@ public class ChallengeGameScreen implements Screen {
         stage.draw();
     }
 
-    @Override
-    public void resize(int width, int height) {
-        stage.getViewport().update(width, height, true);
-    }
-
+    @Override public void resize(int width, int height) { stage.getViewport().update(width, height, true); }
     @Override public void pause() {}
     @Override public void resume() {}
     @Override public void hide() {}
 
     @Override
     public void dispose() {
-        if (stage != null) stage.dispose();
-        if (skin  != null) skin.dispose();
-        if (batch != null) batch.dispose();
+        if (stage      != null) stage.dispose();
+        if (skin       != null) skin.dispose();
+        if (batch      != null) batch.dispose();
         if (nivelActual != null) nivelActual.dispose();
-        if (jugador     != null) jugador.dispose();
+        if (jugador    != null) jugador.dispose();
     }
 }

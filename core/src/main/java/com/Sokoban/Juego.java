@@ -18,6 +18,8 @@ public abstract class Juego {
     public abstract int calcularPuntaje();
     public abstract void update(float delta);
     public abstract void detener();
+    public abstract void undo();
+    public abstract void resetear();
 
     public int getMovimientos() { return movimientos; }
     public float getTiempoTotal() { return tiempoTotal; }
